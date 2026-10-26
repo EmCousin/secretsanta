@@ -6,7 +6,7 @@
     <meta name="referrer" content="no-referrer">
     <meta name="description" data-i18n-content="app.description" content="Draw names and share Secret Santa invitations. No accounts or installation.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-    <meta name="theme-color" content="#235744">
+    <meta name="theme-color" content="#103e35">
     <title data-i18n="app.title">Secret Santa</title>
     <link rel="icon" href="./apps/web/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="./manifest.webmanifest">
@@ -14,21 +14,36 @@
     <link rel="stylesheet" href="./apps/web/styles.css">
     <script type="module" src="./apps/web/app.js"></script>
   </head>
-  <body>
-    <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
-      <label for="language" data-i18n="language.label">Language</label>
-      <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
-        <option value="" data-i18n="language.auto">Automatic (browser)</option>
-        <option value="en" lang="en">English</option>
-        <option value="fr" lang="fr">Français</option>
-        <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
-      </select>
+  <body data-controller="festivity" data-motion="paused" data-action="locale:changed@document->festivity#render">
+    <div class="snowfall" aria-hidden="true"><div class="snow-layer snow-far"></div><div class="snow-layer snow-near"></div></div>
+    <div class="garland" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="topbar">
+      <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
+      <div class="topbar-controls">
+        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause snow &amp; lights</button>
+        <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
+          <label for="language" data-i18n="language.label">Language</label>
+          <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
+            <option value="" data-i18n="language.auto">Automatic (browser)</option>
+            <option value="en" lang="en">English</option>
+            <option value="fr" lang="fr">Français</option>
+            <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
+          </select>
+        </div>
+      </div>
     </div>
     <header class="site-header">
-      <img class="brand-mark" src="./apps/web/icon.svg" width="48" height="48" alt="">
-      <p class="eyebrow" data-i18n="hero.kicker">A little surprise, shared privately</p>
-      <h1 data-i18n="app.title">Secret Santa</h1>
-      <p data-i18n="hero.tagline">Good company. A thoughtful gift. A name to keep secret.</p>
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="hero.kicker">For the joy of giving</p>
+        <h1 data-i18n="app.title">Secret Santa</h1>
+        <p class="christmas-wish" data-i18n="design.wish">Make a little Christmas magic.</p>
+        <p class="hero-tagline" data-i18n="hero.tagline">Gather your favourite people. Wrap a little joy. Keep one lovely secret.</p>
+        <ul class="hero-promises"><li data-i18n="design.noAccounts">No accounts</li><li data-i18n="design.offline">Offline after setup</li><li data-i18n="design.private">Your little secret</li></ul>
+      </div>
+      <figure class="hero-scene">
+        <img src="./apps/web/art/christmas-scene.svg" width="760" height="570" alt="" fetchpriority="high">
+        <figcaption><span aria-hidden="true">✦</span> <span data-i18n="design.nativity">Under the Star of Bethlehem</span> <span aria-hidden="true">✦</span></figcaption>
+      </figure>
     </header>
     <main id="main" tabindex="-1" data-controller="page" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
       <a class="skip-link" href="#main" data-i18n="nav.skip" data-action="click->page#skip:prevent">Skip to the exchange</a>
@@ -36,11 +51,13 @@
       <noscript><p class="notice" data-i18n="app.noJs">JavaScript is required to draw names on your device and open invitations. No draw details are sent to an application server.</p></noscript>
 
       <section data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize" aria-labelledby="organiser-title">
+        <div class="workshop-ribbon" data-i18n="design.workshop">Santa's little workshop</div>
         <div class="section-heading">
           <p class="eyebrow" data-i18n="organiser.kicker">For the organiser</p>
           <h2 id="organiser-title" data-i18n="organiser.title">Bring everyone together.</h2>
           <p data-i18n="organiser.intro">Add your people, draw names, then send each person their own invitation. You won't see who they drew unless you open their link.</p>
         </div>
+        <ol class="exchange-steps" aria-label="How it works" data-i18n-aria-label="design.steps"><li><span aria-hidden="true">01</span><span data-i18n="design.stepPeople">Gather your people</span></li><li><span aria-hidden="true">02</span><span data-i18n="design.stepDraw">Let fate pick</span></li><li><span aria-hidden="true">03</span><span data-i18n="design.stepShare">Send a little mystery</span></li></ol>
         <details class="storage-panel">
           <summary data-i18n="storage.summary">Save or restore on this device</summary>
           <p data-i18n="storage.intro">Saving is optional and keeps one readable copy in this browser, including any generated invitations. Use a device you trust. Saving again replaces the previous copy. Restoring replaces what's on this screen.</p>

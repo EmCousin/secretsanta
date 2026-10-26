@@ -64,3 +64,20 @@ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/inde
 This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 12 normal UI browser scenarios also pass with worker registration enabled.
 
 Manual follow-ups: first-install failure UI, actual OS installation menus, iOS standalone mode, browser cache eviction, multiple long-lived tabs, and device-native sharing still need real-device verification.
+
+## Christmas design verification
+
+```sh
+BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/design-smoke.mjs
+```
+
+13 scenarios pass: every combination of en/fr/pt-BR with 320/390/768/1440px layouts, plus system reduced motion. They cover overflow, pause persistence, translated motion controls, and ordinary reveal behaviour. The script saves full-page screenshots in `/tmp/opencode` by default; `SCREENSHOT_DIR` selects another existing directory. Selected review snapshots are in `docs/screenshots`.
+
+For the optional accessibility checks, add only external tooling:
+
+```sh
+npm install --prefix /tmp/opencode/secretsanta-browser --no-save --package-lock=false playwright@1.56.1 @axe-core/playwright@4.11.0
+BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs AXE_MODULE=/tmp/opencode/secretsanta-browser/node_modules/@axe-core/playwright/dist/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/accessibility-smoke.mjs
+```
+
+15 axe WCAG A/AA scenarios pass: 5 UI states in each language, including expanded form options, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Keyboard/screen-reader review and physical devices remain required manual follow-ups. The 34 Node tests, 12 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
