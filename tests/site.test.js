@@ -35,3 +35,12 @@ test('all project JavaScript parses without a build step', async () => {
     assert.equal(result.status, 0, `${file}: ${result.stderr}`);
   }
 });
+
+test('app code does not render decoded HTML or log private state', async () => {
+  const files = await readdir(new URL('apps/web/', root), { recursive: true });
+  for (const file of files.filter(file => file.endsWith('.js') && !file.startsWith('vendor/'))) {
+    const source = await readFile(new URL(`apps/web/${file}`, root), 'utf8');
+    assert.doesNotMatch(source, /\.innerHTML\s*=|insertAdjacentHTML|console\.(?:log|error|warn)/, file);
+    assert.doesNotMatch(source, /\bfetch\s*\(|\bXMLHttpRequest\b|sendBeacon\s*\(/, file);
+  }
+});
