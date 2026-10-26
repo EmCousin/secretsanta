@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "Secret Santa",
+  "short_name": "Secret Santa",
+  "description": "A private Christmas gift exchange. No accounts or application backend.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf7f0",
+  "theme_color": "#235744",
+  "icons": [
+    { "src": "./apps/web/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./apps/web/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./apps/web/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

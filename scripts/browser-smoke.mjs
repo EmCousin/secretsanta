@@ -152,7 +152,7 @@ try {
     assert.equal(await card.locator('input').evaluate(input => input.selectionEnd - input.selectionStart), link.length);
     await page.getByRole('button', { name: 'Edit and draw again' }).click();
     await page.keyboard.press('Escape');
-    assert.equal(await page.locator('dialog').isVisible(), false);
+    assert.equal(await page.locator('[data-exchange-target="confirm"]').isVisible(), false);
     assert.equal(await page.getByRole('button', { name: 'Edit and draw again' }).evaluate(button => button === document.activeElement), true);
   });
 

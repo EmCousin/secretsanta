@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <meta name="description" data-i18n-content="app.description" content="Draw names and share Secret Santa invitations. No accounts or installation.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta name="theme-color" content="#235744">
     <title data-i18n="app.title">Secret Santa</title>
     <link rel="icon" href="./apps/web/icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./apps/web/icons/apple-touch-icon.png">
     <link rel="stylesheet" href="./apps/web/styles.css">
     <script type="module" src="./apps/web/app.js"></script>
   </head>
@@ -149,6 +152,16 @@
       </section>
     </main>
     <footer>
+      <section class="offline-panel" hidden data-controller="pwa" data-action="locale:changed@document->pwa#localize online@window->pwa#localize offline@window->pwa#localize" aria-label="Offline access" data-i18n-aria-label="pwa.label">
+        <p role="status" aria-live="polite" data-pwa-target="status">Preparing offline access…</p>
+        <details><summary data-i18n="pwa.install">Install on your device</summary><p data-i18n="pwa.installHelp">Use your browser's Install or Add to Home Screen menu. On iPhone or iPad, open Share in Safari, then Add to Home Screen. Menus vary by browser.</p><p data-i18n="pwa.limitations">Visit online once and wait for offline readiness. A new device needs its own first visit. Browsers may remove cached files; copying or saving your links remains your responsibility. Sending invitations still needs a connection.</p></details>
+        <button type="button" hidden data-pwa-target="update" data-action="pwa#requestUpdate" data-i18n="pwa.update">Update available</button>
+        <dialog aria-labelledby="update-title" data-pwa-target="confirm">
+          <h2 id="update-title" data-i18n="pwa.updateTitle">Reload to update?</h2>
+          <p data-i18n="pwa.updateDescription">Save your exchange or copy the invitation links first. Reloading will discard unsaved changes on this page.</p>
+          <div class="button-row"><button type="button" autofocus data-action="pwa#cancelUpdate" data-i18n="pwa.later">Keep working</button><button type="button" class="primary" data-action="pwa#applyUpdate" data-i18n="pwa.reload">Reload and update</button></div>
+        </dialog>
+      </section>
       <p data-i18n="footer.summary">No accounts. No installation. Draw details stay on your device.</p>
       <details><summary data-i18n="footer.privacyTitle">About your privacy</summary><p data-i18n="footer.privacyBody">This site has no application backend or analytics. Invitations carry their data in the part of the link after #, which isn't sent to the static host in an HTTP request. The host still receives normal website requests. Anyone holding a link, including the organiser or messaging provider carrying it, may read its contents. Links are encoded, not encrypted or verified. Saving a copy is optional and local to this browser.</p></details>
     </footer>

@@ -52,3 +52,15 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 ## Localisation verification
 
 29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 12 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, and blocked preference storage. Physical-device and native-speaker review remain recommended.
+
+## Offline verification
+
+The Node suite now has 34 tests, including complete precache coverage, manifest/icon validation, scope isolation, static-only caching, and failed-install cleanup. With the same external Playwright installation:
+
+```sh
+PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/pwa-smoke.mjs
+```
+
+This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 12 normal UI browser scenarios also pass with worker registration enabled.
+
+Manual follow-ups: first-install failure UI, actual OS installation menus, iOS standalone mode, browser cache eviction, multiple long-lived tabs, and device-native sharing still need real-device verification.

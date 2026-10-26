@@ -4,6 +4,7 @@ import ExchangeController from './controllers/exchange_controller.js';
 import InvitationController from './controllers/invitation_controller.js';
 import ShareController from './controllers/share_controller.js';
 import LocaleController from './controllers/locale_controller.js';
+import PwaController from './controllers/pwa_controller.js';
 import { i18n } from './localization.js';
 
 const application = Application.start();
@@ -12,6 +13,7 @@ application.register('exchange', ExchangeController);
 application.register('invitation', InvitationController);
 application.register('share', ShareController);
 application.register('locale', LocaleController);
+application.register('pwa', PwaController);
 
 // Stimulus normally logs controller state with exceptions. Keep personal data out
 // of logs and provide a visible recovery message instead.

@@ -9,6 +9,7 @@
 - Draws stay on the device. Invitations use versioned URL fragments. Encoding is not encryption. An organiser holding everyone's links can deliberately reveal assignments.
 - Never log assignments, include recipient names in titles/metadata, or insert untrusted text with `innerHTML`.
 - Local saving is explicit and optional. Do not clear unrelated origin storage. Old invitations cannot be revoked by a redraw or deletion.
+- Static app assets are automatically cached for offline use after an online visit. Never cache draw data or arbitrary navigations. Keep the service worker allowlist complete and bump its version for every runtime release. Updates require consent before reloading an active page.
 - Vendor updates must pin a version and retain the upstream licence. No production dependency fetches.
 - Run `npm test` before opening a PR. No install is required. Add regression tests for domain changes and update the browser checklist for UI changes.
 - Leave PRs unmerged unless the user asks to merge. State dependencies and merge order for stacked PRs.
