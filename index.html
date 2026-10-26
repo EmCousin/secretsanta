@@ -7,16 +7,141 @@
     <meta name="description" content="Draw names and share Secret Santa invitations. No accounts or installation.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>Secret Santa</title>
+    <link rel="icon" href="./apps/web/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./apps/web/styles.css">
     <script type="module" src="./apps/web/app.js"></script>
   </head>
   <body>
-    <main>
+    <header class="site-header">
+      <img class="brand-mark" src="./apps/web/icon.svg" width="48" height="48" alt="">
       <p class="eyebrow">A little surprise, shared privately</p>
       <h1>Secret Santa</h1>
-      <p>Draw names with your family and friends. No accounts, installation, or application backend.</p>
-      <noscript><p>JavaScript is required to draw names locally and open invitations. No draw details are sent to an application server.</p></noscript>
-      <p>The organiser avoids seeing assignments during normal use. Anyone holding an invitation can reveal it.</p>
+      <p>Good company. A thoughtful gift. A name to keep secret.</p>
+    </header>
+    <main id="main" tabindex="-1" data-controller="page" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
+      <a class="skip-link" href="#main" data-action="click->page#skip:prevent">Skip to the exchange</a>
+      <p id="startup" class="notice" role="status" data-page-target="startup">The app is loading. If this message stays, check that JavaScript is enabled and reload.</p>
+      <noscript><p class="notice">JavaScript is required to draw names on your device and open invitations. No draw details are sent to an application server.</p></noscript>
+
+      <section data-page-target="organiser" data-controller="exchange" aria-labelledby="organiser-title">
+        <div class="section-heading">
+          <p class="eyebrow">For the organiser</p>
+          <h2 id="organiser-title">Bring everyone together.</h2>
+          <p>Add your people, draw names, then send each person their own invitation. You won't see who they drew unless you open their link.</p>
+        </div>
+        <details class="storage-panel">
+          <summary>Save or restore on this device</summary>
+          <p>Saving is optional and keeps one readable copy in this browser, including any generated invitations. Use a device you trust. Saving again replaces the previous copy. Restoring replaces what's on this screen.</p>
+          <div class="button-row">
+            <button type="button" disabled data-exchange-target="storageButton" data-action="exchange#save">Save on this device</button>
+            <button type="button" disabled data-exchange-target="storageButton" data-action="exchange#restore">Restore saved copy</button>
+            <button type="button" disabled class="quiet" data-exchange-target="storageButton" data-action="exchange#deleteSaved">Delete saved copy</button>
+          </div>
+        </details>
+        <p class="status" role="status" aria-live="polite" data-exchange-target="status"></p>
+        <p class="error" role="alert" tabindex="-1" hidden data-exchange-target="error"></p>
+
+        <form data-exchange-target="form" data-action="submit->exchange#draw:prevent">
+          <fieldset disabled data-exchange-target="controls">
+            <legend class="sr-only">Create your exchange</legend>
+            <label for="exchange-name">What's the occasion?</label>
+            <input id="exchange-name" type="text" value="Our Secret Santa" required maxlength="80" autocomplete="off" data-exchange-target="name">
+
+            <h3>Your people</h3>
+            <p class="help">Add 2 to 50 people. Use a nickname or surname if two people share a name. Nobody can draw themselves.</p>
+            <div class="people" data-exchange-target="people"></div>
+            <button type="button" data-action="exchange#addPerson">Add another person</button>
+
+            <details class="optional">
+              <summary>Budget, date, and a note</summary>
+              <div class="two-columns">
+                <div><label for="budget">Budget <span class="optional-label">(optional)</span></label><input id="budget" type="text" maxlength="80" placeholder="Around 25 €" data-exchange-target="budget"></div>
+                <div><label for="date">Exchange date <span class="optional-label">(optional)</span></label><input id="date" type="date" data-exchange-target="date"></div>
+              </div>
+              <label for="instructions">A note for everyone <span class="optional-label">(optional)</span></label>
+              <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-exchange-target="instructions"></textarea>
+              <p class="help">Details and gift hints are included in the invitations. They won't update after you send them.</p>
+            </details>
+
+            <details class="optional">
+              <summary>Who shouldn't draw whom?</summary>
+              <p class="help">For example, stop partners drawing each other. Each rule works in one direction; add the reverse rule if needed.</p>
+              <div class="two-columns">
+                <div><label for="excluded-giver">This person</label><select id="excluded-giver" data-exchange-target="giver"><option value="">Choose a person</option></select></div>
+                <div><label for="excluded-recipient">should not draw</label><select id="excluded-recipient" data-exchange-target="recipient"><option value="">Choose a person</option></select></div>
+              </div>
+              <button type="button" data-action="exchange#addRule">Add exclusion</button>
+              <ul class="rules" data-exchange-target="rules"></ul>
+            </details>
+            <div class="draw-action">
+              <button class="primary" type="submit">Draw names</button>
+              <p class="help">The draw happens on your device. Nothing is saved automatically.</p>
+            </div>
+          </fieldset>
+        </form>
+
+        <section hidden data-exchange-target="results" aria-labelledby="results-title">
+          <h2 id="results-title" tabindex="-1" data-exchange-target="resultHeading">Your invitations are ready.</h2>
+          <p>Send each link only to the person named on its card. Keep everyone's links private, including from the group chat.</p>
+          <p class="notice">Anyone with a link can reveal that person's assignment. We can't check delivery, recover lost links, or revoke old invitations.</p>
+          <div class="invitation-cards" data-exchange-target="cards"></div>
+          <button type="button" class="quiet" data-action="exchange#requestEdit">Edit and draw again</button>
+        </section>
+
+        <dialog aria-labelledby="redraw-title" aria-describedby="redraw-description" data-exchange-target="confirm">
+          <h2 id="redraw-title">Start a new draw?</h2>
+          <p id="redraw-description">Old invitations will still work. If you draw again, send everyone a new link and ask them to ignore the old one. Your saved copy won't change until you save again.</p>
+          <div class="button-row">
+            <button type="button" autofocus data-action="exchange#cancelEdit">Keep this draw</button>
+            <button type="button" class="primary" data-action="exchange#edit">Edit this exchange</button>
+          </div>
+        </dialog>
+
+        <template data-exchange-target="personTemplate">
+          <section class="person-row" data-action="input->exchange#updatePeople">
+            <div class="person-heading"><h4 data-person-number>Person</h4><button type="button" class="quiet compact" data-remove data-action="exchange#removePerson">Remove</button></div>
+            <label data-label="name">Name</label>
+            <input type="text" required maxlength="60" autocomplete="off" data-field="name">
+            <details class="hint-details"><summary>Add a gift hint <span class="optional-label">(optional)</span></summary><label data-label="hint">What would they enjoy?</label><textarea rows="2" maxlength="240" data-field="hint"></textarea></details>
+          </section>
+        </template>
+        <template data-exchange-target="ruleTemplate"><li><span></span><button type="button" class="quiet compact" data-action="exchange#removeRule">Remove</button></li></template>
+        <template data-exchange-target="cardTemplate">
+          <article class="invitation-card" data-controller="share">
+            <h3></h3>
+            <label>Private invitation link</label>
+            <input type="text" readonly autocomplete="off" spellcheck="false" data-share-target="link" data-action="click->share#select">
+            <div class="button-row">
+              <button type="button" hidden data-share-target="copy" data-action="share#copy">Copy invitation</button>
+              <button type="button" hidden data-share-target="share" data-action="share#share">Send privately</button>
+            </div>
+            <p class="status" role="status" aria-live="polite" data-share-target="status"></p>
+          </article>
+        </template>
+      </section>
+
+      <section class="participant" hidden data-page-target="invitation" data-action="invitation:reload->invitation#load" aria-labelledby="invitation-title">
+        <p class="eyebrow">Just for you</p>
+        <h2 id="invitation-title" data-invitation-target="greeting">Your Secret Santa invitation</h2>
+        <p>Only continue if this invitation is for you. Opening someone else's link will spoil their surprise.</p>
+        <p class="error" role="alert" hidden data-invitation-target="error"></p>
+        <button class="primary" type="button" disabled data-invitation-target="reveal" data-action="invitation#reveal">Reveal my person</button>
+        <section class="reveal-card" hidden data-invitation-target="details" aria-label="Your assignment">
+          <p>You're finding a gift for</p>
+          <h3 tabindex="-1" data-invitation-target="recipient"></h3>
+          <p class="gift-hint" data-invitation-target="hint"></p>
+          <h4 data-invitation-target="exchange"></h4>
+          <p data-invitation-target="budget"></p>
+          <p data-invitation-target="date"></p>
+          <p class="multiline" data-invitation-target="instructions"></p>
+          <p class="help">Keep this link somewhere private so you can look again later. Anyone holding it can reveal your assignment.</p>
+        </section>
+        <p><a href="./">Create your own exchange</a></p>
+      </section>
     </main>
+    <footer>
+      <p>No accounts. No installation. Draw details stay on your device.</p>
+      <details><summary>About your privacy</summary><p>This site has no application backend or analytics. Invitations carry their data in the part of the link after #, which isn't sent to the static host in an HTTP request. The host still receives normal website requests. Anyone holding a link, including the organiser or messaging provider carrying it, may read its contents. Links are encoded, not encrypted or verified. Saving a copy is optional and local to this browser.</p></details>
+    </footer>
   </body>
 </html>
