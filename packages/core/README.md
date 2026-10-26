@@ -10,7 +10,7 @@ People have stable IDs, distinct display names, and optional hints. Rules are di
 
 The algorithm uses randomised bipartite matching with augmenting paths. It finds a matching whenever one exists in O(n³) time, without retrying random full draws indefinitely. Random integers use `crypto.getRandomValues` with rejection sampling to avoid modulo bias. Edge and giver order are shuffled. **Complete assignments are not guaranteed to be uniformly distributed.** Multiple cycles and reciprocal pairs are permitted unless exclusions forbid them.
 
-The optional `randomInt` argument is a deterministic testing seam. The application uses the default cryptographic implementation.
+The optional `randomInt` argument is a deterministic testing seam. The application uses the default cryptographic implementation from `utils/random.js`, with its own utility tests.
 
 ```js
 import { SecretSantaDraw } from './draw.js';
