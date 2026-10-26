@@ -40,6 +40,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] Disable JavaScript or block the app module. Controls remain disabled and an explanation remains visible; no personal data is submitted.
 - [ ] Host below a subpath. Check local assets and invitations without rewriting or SPA fallback rules.
 - [ ] Check the network panel: static same-origin assets only; no fields or invitation fragments in request URLs.
+- [ ] Check English, French, and Brazilian Portuguese, browser-language detection, English fallback, and the automatic/manual language selector. Switch languages before and after drawing/revealing; no fields or assignments should change.
 
 ## Verified in the initial implementation
 
@@ -47,3 +48,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - Chromium 155.0.8059.84 on Linux, through Playwright 1.56.1: 9 passing browser scenarios at the root URL and another 9 below `/party/` on a local static host. The mobile scenario uses a 320px viewport. A 390px full-page screenshot was also inspected.
 - No third-party runtime requests or JavaScript console errors during the browser scenarios.
 - Safari, Firefox, Edge, screen readers, physical phones, and browser-native messaging share sheets have not been verified. Copy/share results were simulated in the permission/success cases. The manual checklist remains open.
+
+## Localisation verification
+
+29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 12 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, and blocked preference storage. Physical-device and native-speaker review remain recommended.

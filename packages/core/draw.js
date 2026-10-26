@@ -30,7 +30,7 @@ export class SecretSantaDraw {
     this.#recipientOwners = new Map();
     for (const giver of this.#shuffle(this.#people)) {
       if (!this.#assign(giver.id, new Set())) {
-        throw new ValidationError('These exclusions leave no possible draw. Remove an exclusion or add more people, then try again.');
+        throw new ValidationError('These exclusions leave no possible draw. Remove an exclusion or add more people, then try again.', 'validation.impossible');
       }
     }
     const recipients = new Map([...this.#recipientOwners].map(([recipientId, giverId]) => [giverId, recipientId]));

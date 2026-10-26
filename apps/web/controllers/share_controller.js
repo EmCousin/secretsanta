@@ -1,4 +1,5 @@
 import { Controller } from '../vendor/stimulus.js';
+import { i18n } from '../localization.js';
 
 export default class extends Controller {
   static targets = ['link', 'copy', 'share', 'status'];
@@ -17,28 +18,37 @@ export default class extends Controller {
   async copy() {
     try {
       await navigator.clipboard.writeText(this.linkTarget.value);
-      this.statusTarget.textContent = 'Copied. Send this link only to the person named above.';
+      this.say('share.copied');
     } catch {
       this.select();
-      this.statusTarget.textContent = 'Copy was blocked. Select and copy the invitation link manually.';
+      this.say('share.copyFailed');
     }
   }
 
   async share() {
     try {
       await navigator.share({
-        title: 'Your Secret Santa invitation',
-        text: `${this.giverValue}, here is your Secret Santa invitation. Please keep this link private.`,
+        title: i18n.t('share.title'),
+        text: i18n.t('share.text', { name: this.giverValue }),
         url: this.linkTarget.value,
       });
-      this.statusTarget.textContent = 'Sharing finished. We cannot check whether the invitation was delivered.';
+      this.say('share.finished');
     } catch (error) {
       if (error.name === 'AbortError') {
-        this.statusTarget.textContent = 'Sharing cancelled. You can send the invitation later.';
+        this.say('share.cancelled');
       } else {
         this.select();
-        this.statusTarget.textContent = 'Sharing is unavailable. Copy the invitation link and send it privately.';
+        this.say('share.failed');
       }
     }
+  }
+
+  say(key) {
+    this.statusKey = key;
+    this.localize();
+  }
+
+  localize() {
+    if (this.statusKey) this.statusTarget.textContent = i18n.t(this.statusKey);
   }
 }
