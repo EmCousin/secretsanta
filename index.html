@@ -15,12 +15,15 @@
     <script type="module" src="./apps/web/app.js"></script>
   </head>
   <body data-controller="festivity" data-motion="paused" data-action="locale:changed@document->festivity#render">
-    <div class="snowfall" aria-hidden="true"><div class="snow-layer snow-far"></div><div class="snow-layer snow-near"></div></div>
-    <div class="garland" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="snowfall" aria-hidden="true">
+      <div class="snow-layer snow-far ambient-motion"></div><div class="snow-layer snow-near ambient-motion"></div>
+      <div class="snow-crystals"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
+    </div>
+    <div class="garland" aria-hidden="true"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
       <div class="topbar-controls">
-        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause snow &amp; lights</button>
+        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
         <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
           <label for="language" data-i18n="language.label">Language</label>
           <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
@@ -34,14 +37,20 @@
     </div>
     <header class="site-header">
       <div class="hero-copy">
-        <p class="eyebrow" data-i18n="hero.kicker">For the joy of giving</p>
+        <p class="eyebrow" data-i18n="hero.kicker">Christmas gift exchange</p>
         <h1 data-i18n="app.title">Secret Santa</h1>
-        <p class="christmas-wish" data-i18n="design.wish">Make a little Christmas magic.</p>
-        <p class="hero-tagline" data-i18n="hero.tagline">Gather your favourite people. Wrap a little joy. Keep one lovely secret.</p>
-        <ul class="hero-promises"><li data-i18n="design.noAccounts">No accounts</li><li data-i18n="design.offline">Offline after setup</li><li data-i18n="design.private">Your little secret</li></ul>
+        <p class="christmas-wish" data-i18n="design.wish">Who's buying for whom?</p>
+        <p class="hero-tagline" data-i18n="hero.tagline">Add the names and we'll do the draw. Everyone gets a private link to see who they're buying for.</p>
+        <ul class="hero-promises"><li data-i18n="design.noAccounts">No account needed</li><li data-i18n="design.offline">Works offline after setup</li><li data-i18n="design.private">Send links privately</li></ul>
       </div>
       <figure class="hero-scene">
-        <img src="./apps/web/art/christmas-scene.svg" width="760" height="570" alt="" fetchpriority="high">
+        <div class="scene-stage" aria-hidden="true">
+          <img class="scene-base" src="./apps/web/art/christmas-scene.svg" width="760" height="570" alt="" fetchpriority="high">
+          <img class="scene-layer scene-lights ambient-motion" src="./apps/web/art/window-lights.svg" width="760" height="570" alt="">
+          <img class="scene-layer scene-smoke ambient-motion" src="./apps/web/art/chimney-smoke.svg" width="760" height="570" alt="">
+          <img class="scene-layer scene-sleigh ambient-motion" src="./apps/web/art/sleigh.svg" width="760" height="570" alt="">
+          <span class="scene-star ambient-motion"></span>
+        </div>
         <figcaption><span aria-hidden="true">✦</span> <span data-i18n="design.nativity">Under the Star of Bethlehem</span> <span aria-hidden="true">✦</span></figcaption>
       </figure>
     </header>
@@ -51,13 +60,13 @@
       <noscript><p class="notice" data-i18n="app.noJs">JavaScript is required to draw names on your device and open invitations. No draw details are sent to an application server.</p></noscript>
 
       <section data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize" aria-labelledby="organiser-title">
-        <div class="workshop-ribbon" data-i18n="design.workshop">Santa's little workshop</div>
+        <div class="workshop-ribbon" data-i18n="design.workshop">The Christmas draw</div>
         <div class="section-heading">
-          <p class="eyebrow" data-i18n="organiser.kicker">For the organiser</p>
-          <h2 id="organiser-title" data-i18n="organiser.title">Bring everyone together.</h2>
-          <p data-i18n="organiser.intro">Add your people, draw names, then send each person their own invitation. You won't see who they drew unless you open their link.</p>
+          <p class="eyebrow" data-i18n="organiser.kicker">Set up the draw</p>
+          <h2 id="organiser-title" data-i18n="organiser.title">Who's taking part?</h2>
+          <p data-i18n="organiser.intro">Add everyone below, then draw the names. Send each person their own link without opening it yourself.</p>
         </div>
-        <ol class="exchange-steps" aria-label="How it works" data-i18n-aria-label="design.steps"><li><span aria-hidden="true">01</span><span data-i18n="design.stepPeople">Gather your people</span></li><li><span aria-hidden="true">02</span><span data-i18n="design.stepDraw">Let fate pick</span></li><li><span aria-hidden="true">03</span><span data-i18n="design.stepShare">Send a little mystery</span></li></ol>
+        <ol class="exchange-steps" aria-label="How it works" data-i18n-aria-label="design.steps"><li><span aria-hidden="true">01</span><span data-i18n="design.stepPeople">Add names</span></li><li><span aria-hidden="true">02</span><span data-i18n="design.stepDraw">Draw names</span></li><li><span aria-hidden="true">03</span><span data-i18n="design.stepShare">Send the links</span></li></ol>
         <details class="storage-panel">
           <summary data-i18n="storage.summary">Save or restore on this device</summary>
           <p data-i18n="storage.intro">Saving is optional and keeps one readable copy in this browser, including any generated invitations. Use a device you trust. Saving again replaces the previous copy. Restoring replaces what's on this screen.</p>
@@ -76,7 +85,7 @@
             <label for="exchange-name" data-i18n="form.occasion">What's the occasion?</label>
             <input id="exchange-name" type="text" value="Our Secret Santa" data-i18n-default="form.defaultName" required maxlength="80" autocomplete="off" data-exchange-target="name">
 
-            <h3 data-i18n="form.people">Your people</h3>
+            <h3 data-i18n="form.people">Names</h3>
             <p class="help" data-i18n="form.peopleHelp">Add 2 to 50 people. Use a nickname or surname if two people share a name. Nobody can draw themselves.</p>
             <div class="people" data-exchange-target="people"></div>
             <button type="button" data-i18n="form.addPerson" data-action="exchange#addPerson">Add another person</button>
@@ -150,13 +159,13 @@
       </section>
 
       <section class="participant" hidden data-page-target="invitation" data-action="invitation:reload->invitation#load locale:changed@document->invitation#localize" aria-labelledby="invitation-title">
-        <p class="eyebrow" data-i18n="participant.kicker">Just for you</p>
+        <p class="eyebrow" data-i18n="participant.kicker">Your invitation</p>
         <h2 id="invitation-title" data-invitation-target="greeting">Your Secret Santa invitation</h2>
         <p data-i18n="participant.guard">Only continue if this invitation is for you. Opening someone else's link will spoil their surprise.</p>
         <p class="error" role="alert" hidden data-invitation-target="error"></p>
-        <button class="primary" type="button" disabled data-i18n="participant.reveal" data-invitation-target="reveal" data-action="invitation#reveal">Reveal my person</button>
+        <button class="primary" type="button" disabled data-i18n="participant.reveal" data-invitation-target="reveal" data-action="invitation#reveal">See who I got</button>
         <section class="reveal-card" hidden data-invitation-target="details" aria-label="Your assignment" data-i18n-aria-label="participant.assignment">
-          <p data-i18n="participant.for">You're finding a gift for</p>
+          <p data-i18n="participant.for">You're buying a gift for</p>
           <h3 tabindex="-1" data-invitation-target="recipient"></h3>
           <p class="gift-hint" data-invitation-target="hint"></p>
           <h4 data-invitation-target="exchange"></h4>
@@ -171,7 +180,7 @@
     <footer>
       <section class="offline-panel" hidden data-controller="pwa" data-action="locale:changed@document->pwa#localize online@window->pwa#localize offline@window->pwa#localize" aria-label="Offline access" data-i18n-aria-label="pwa.label">
         <p role="status" aria-live="polite" data-pwa-target="status">Preparing offline access…</p>
-        <details><summary data-i18n="pwa.install">Install on your device</summary><p data-i18n="pwa.installHelp">Use your browser's Install or Add to Home Screen menu. On iPhone or iPad, open Share in Safari, then Add to Home Screen. Menus vary by browser.</p><p data-i18n="pwa.limitations">Visit online once and wait for offline readiness. A new device needs its own first visit. Browsers may remove cached files; copying or saving your links remains your responsibility. Sending invitations still needs a connection.</p></details>
+        <details><summary data-i18n="pwa.install">Install on your device</summary><p data-i18n="pwa.installHelp">Use your browser's Install or Add to Home Screen menu. On iPhone or iPad, open Share in Safari, then Add to Home Screen. Menus vary by browser.</p><p data-i18n="pwa.limitations">Open the app online once and wait until it's ready for offline use. Each new device needs this first visit. Browsers can clear saved files, so keep your links somewhere safe. You still need a connection to send invitations.</p></details>
         <button type="button" hidden data-pwa-target="update" data-action="pwa#requestUpdate" data-i18n="pwa.update">Update available</button>
         <dialog aria-labelledby="update-title" data-pwa-target="confirm">
           <h2 id="update-title" data-i18n="pwa.updateTitle">Reload to update?</h2>
@@ -179,7 +188,7 @@
           <div class="button-row"><button type="button" autofocus data-action="pwa#cancelUpdate" data-i18n="pwa.later">Keep working</button><button type="button" class="primary" data-action="pwa#applyUpdate" data-i18n="pwa.reload">Reload and update</button></div>
         </dialog>
       </section>
-      <p data-i18n="footer.summary">No accounts. No installation. Draw details stay on your device.</p>
+      <p data-i18n="footer.summary">You can use this without an account or installing anything. The draw stays on your device.</p>
       <details><summary data-i18n="footer.privacyTitle">About your privacy</summary><p data-i18n="footer.privacyBody">This site has no application backend or analytics. Invitations carry their data in the part of the link after #, which isn't sent to the static host in an HTTP request. The host still receives normal website requests. Anyone holding a link, including the organiser or messaging provider carrying it, may read its contents. Links are encoded, not encrypted or verified. Saving a copy is optional and local to this browser.</p></details>
     </footer>
   </body>

@@ -71,13 +71,13 @@ try {
     await page.getByRole('button', { name: 'Edit this exchange', exact: true }).click();
     await page.locator('[data-exchange-target="form"]:visible').waitFor();
     await page.goto(invitation);
-    await page.getByRole('button', { name: 'Reveal my person' }).waitFor();
+    await page.getByRole('button', { name: 'See who I got' }).waitFor();
     await page.keyboard.press('Tab');
     await page.getByRole('link', { name: 'Skip to the exchange' }).focus();
     await page.keyboard.press('Enter');
     assert.equal(page.url(), invitation, 'Skip navigation preserves the invitation fragment');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '', 'Recipient absent before reveal');
-    await page.getByRole('button', { name: 'Reveal my person' }).click();
+    await page.getByRole('button', { name: 'See who I got' }).click();
     assert.ok(['Bob', 'Charlie'].includes(await page.locator('[data-invitation-target="recipient"]').textContent()));
     assert.equal(await page.title(), 'Secret Santa');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
@@ -159,12 +159,12 @@ try {
   await check('malformed invitations recover; decoded markup remains text', async page => {
     await page.goto(`${base}#santa=1.bad`);
     await page.locator('[data-invitation-target="error"]:visible').waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Reveal my person' }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'See who I got' }).count(), 0);
     await page.getByRole('link', { name: 'Create your own exchange' }).click();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     const payload = { v: 1, giver: 'Alice', recipient: '<img src=x onerror=alert(1)>', hint: '<script>bad()</script>', exchange: { name: 'Family', budget: '', date: '', instructions: '' } };
     await page.goto(base + new Invitation(payload).toFragment());
-    await page.getByRole('button', { name: 'Reveal my person' }).click();
+    await page.getByRole('button', { name: 'See who I got' }).click();
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), payload.recipient);
     assert.equal(await page.locator('.reveal-card img, .reveal-card script').count(), 0);
     await page.goto(`${base}#santa=2.bad`);

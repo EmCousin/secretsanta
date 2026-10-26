@@ -18,17 +18,28 @@ try {
         await page.goto(base);
         await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
         assert.equal(await page.locator('body').getAttribute('data-motion'), 'playing');
+        const moving = await page.locator('.scene-layer, .scene-star, .snow-crystals span').evaluateAll(elements =>
+          elements.every(element => element.getAnimations().some(animation => animation.playState === 'running')));
+        assert.equal(moving, true, 'Sleigh, smoke, windows, star and snowflakes animate');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${locale}/${width}`);
         await page.locator('[data-festivity-target="toggle"]').click();
         assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused');
         assert.equal(await page.locator('.snow-layer').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
+        assert.equal(await page.locator('.ambient-motion').evaluateAll(elements =>
+          elements.every(element => element.getAnimations().every(animation => animation.playState === 'paused'))), true, 'One control pauses every ambient effect');
+        assert.equal(await page.locator('.scene-sleigh').evaluate(async element => {
+          const animation = element.getAnimations()[0];
+          const before = animation.currentTime;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          return animation.currentTime === before;
+        }), true, 'Paused animations stop advancing');
         await page.reload();
         await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
         assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused', 'Explicit pause survives reload');
         if (locale === 'en' && (width === 390 || width === 1440)) {
           await page.screenshot({ path: `${screenshotDir}/secretsanta-christmas-${width}.png`, fullPage: true, animations: 'disabled' });
         }
-        const invitation = new Invitation({ v: 1, giver: 'Alice', recipient: 'João', hint: 'Un beau livre', exchange: { name: 'Christmas together', date: '2026-12-25', budget: '25 €', instructions: 'A little joy for everyone.' } });
+        const invitation = new Invitation({ v: 1, giver: 'Alice', recipient: 'João', hint: 'Un beau livre', exchange: { name: 'Family Christmas', date: '2026-12-25', budget: '25 €', instructions: 'Bring your gift on Christmas Day.' } });
         await page.goto(invitation.toUrl(base));
         await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
         await page.locator('[data-invitation-target="reveal"]').click();
@@ -50,8 +61,19 @@ try {
     assert.equal(await page.locator('[data-festivity-target="toggle"]').isDisabled(), true);
     assert.equal(await page.locator('.snow-layer').first().evaluate(element => getComputedStyle(element).animationName), 'none');
     assert.equal(await page.locator('.garland span').first().evaluate(element => getComputedStyle(element).animationName), 'none');
+    assert.equal(await page.locator('.ambient-motion').evaluateAll(elements =>
+      elements.every(element => getComputedStyle(element).animationName === 'none')), true);
     await page.locator('#language').selectOption('pt-BR');
     assert.equal(await page.locator('[data-festivity-target="toggle"]').textContent(), new I18n(['pt-BR']).t('design.motionReduced'));
+    await page.locator('[data-field="name"]').nth(0).fill('Alice');
+    await page.locator('[data-field="name"]').nth(1).fill('Bob');
+    await page.locator('button[type="submit"]').click();
+    assert.equal(await page.locator('.invitation-card').first().evaluate(element => getComputedStyle(element).animationName), 'none');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForFunction(() => document.body.dataset.motion === 'playing');
+    assert.equal(await page.locator('[data-festivity-target="toggle"]').isDisabled(), false);
+    await page.locator('[data-festivity-target="toggle"]').click();
+    assert.equal(await page.locator('.invitation-card').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Pausing never hides cards in their entrance animation');
     console.log('PASS system reduced motion disables all effects and stays translated');
   } finally { await context.close(); }
   console.log('13 design browser scenarios passed.');
