@@ -1,0 +1,5 @@
+{
+  "name": "@secretsanta/core",
+  "private": true,
+  "type": "module"
+}
