@@ -4,6 +4,7 @@
 - Keep the runtime static: HTML, CSS, native JS modules, and self-hosted Stimulus. No build step, backend, accounts, analytics, CDNs, or remote fonts.
 - The root `index.html` is the static entry point. Browser behaviour belongs in `apps/web`; framework-independent logic belongs in `packages/core`.
 - HTML owns the structure. Use native controls, details, validation, labels, and visible focus. Stimulus controllers add small behaviours, never framework-specific draw logic.
+- Prefer focused classes for domain behaviour and owned state, such as the draw solver and invitations. Keep low-level validation and random-number helpers as simple functions; avoid inheritance hierarchies and static-only wrapper classes.
 - JS is required for drawing and decoding. Prevent native submissions of personal data even if initialization fails. Enable JS-only controls only after successful initialization.
 - Draws stay on the device. Invitations use versioned URL fragments. Encoding is not encryption. An organiser holding everyone's links can deliberately reveal assignments.
 - Never log assignments, include recipient names in titles/metadata, or insert untrusted text with `innerHTML`.
