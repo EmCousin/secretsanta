@@ -28,6 +28,13 @@ test('vendored Stimulus has the pinned version and upstream licence', async () =
   assert.match(license, /Permission is hereby granted/);
 });
 
+test('foundation has no dummy controller or placeholder bindings', async () => {
+  const html = await readFile(new URL('index.html', root), 'utf8');
+  const app = await readFile(new URL('apps/web/app.js', root), 'utf8');
+  assert.doesNotMatch(app, /HelloController|register\(['"]hello['"]/);
+  assert.doesNotMatch(html, /data-controller="hello"|data-hello-target/);
+});
+
 test('all project JavaScript parses without a build step', async () => {
   const files = await readdir(root, { recursive: true });
   for (const file of files.filter(file => file.endsWith('.js') && !file.startsWith('node_modules/'))) {

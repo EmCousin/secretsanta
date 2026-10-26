@@ -43,7 +43,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 
 ## Verified in the initial implementation
 
-- Node 24.13.0: 20 passing built-in tests, including all 4096 four-person exclusion configurations.
+- Node 24.13.0: 23 passing built-in tests, including all 4096 four-person exclusion configurations. Review follow-ups also check independent solver state, immutable invitation values, and absence of the dummy foundation controller.
 - Chromium 155.0.8059.84 on Linux, through Playwright 1.56.1: 9 passing browser scenarios at the root URL and another 9 below `/party/` on a local static host. The mobile scenario uses a 320px viewport. A 390px full-page screenshot was also inspected.
 - No third-party runtime requests or JavaScript console errors during the browser scenarios.
 - Safari, Firefox, Edge, screen readers, physical phones, and browser-native messaging share sheets have not been verified. Copy/share results were simulated in the permission/success cases. The manual checklist remains open.

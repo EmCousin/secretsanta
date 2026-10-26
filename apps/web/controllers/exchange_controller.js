@@ -1,6 +1,6 @@
 import { Controller } from '../vendor/stimulus.js';
-import { draw } from '../../../packages/core/draw.js';
-import { encodeInvitation, invitationUrl, decodeInvitation } from '../../../packages/core/invitations.js';
+import { SecretSantaDraw } from '../../../packages/core/draw.js';
+import { Invitation } from '../../../packages/core/invitations.js';
 import { validateParticipants, validateExchange, ValidationError } from '../../../packages/core/validation.js';
 import { saveCopy, restoreCopy, deleteCopy } from '../storage.js';
 
@@ -111,12 +111,15 @@ export default class extends Controller {
       const draft = this.draft();
       const participants = validateParticipants(draft.participants);
       const exchange = validateExchange(draft.exchange);
-      const assignments = draw(participants, draft.exclusions);
+      const draw = new SecretSantaDraw(participants, draft.exclusions);
+      const assignments = draw.generate();
       const people = new Map(participants.map(person => [person.id, person]));
-      this.invitations = assignments.map(pair => ({
-        giverId: pair.giverId,
-        fragment: encodeInvitation({ v: 1, giver: people.get(pair.giverId).name, recipient: people.get(pair.recipientId).name, hint: people.get(pair.recipientId).hint, exchange }),
-      }));
+      this.invitations = assignments.map(({ giverId, recipientId }) => {
+        const giver = people.get(giverId);
+        const recipient = people.get(recipientId);
+        const invitation = new Invitation({ v: 1, giver: giver.name, recipient: recipient.name, hint: recipient.hint, exchange });
+        return { giverId, fragment: invitation.toFragment() };
+      });
       this.showResults();
       this.say('The draw is ready. Send each invitation privately. Nothing has been saved automatically.');
     } catch (error) { this.fail(error.message); }
@@ -132,7 +135,7 @@ export default class extends Controller {
       card.querySelector('h3').textContent = `Invitation for ${giver}`;
       const input = card.querySelector('input');
       input.id = `link-${item.giverId}`;
-      input.value = invitationUrl(location.href, decodeInvitation(item.fragment));
+      input.value = Invitation.fromFragment(item.fragment).toUrl(location.href);
       card.querySelector('label').htmlFor = input.id;
       this.cardsTarget.append(card);
     }

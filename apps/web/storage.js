@@ -1,5 +1,5 @@
 import { LIMITS, record, text, validateParticipants, validateExclusions, validateExchange, ValidationError } from '../../packages/core/validation.js';
-import { decodeInvitation } from '../../packages/core/invitations.js';
+import { Invitation } from '../../packages/core/invitations.js';
 
 export const STORAGE_KEY = 'secretsanta.saved.v1';
 const MAX_SAVED_LENGTH = 500000;
@@ -30,7 +30,7 @@ export function validateSaved(value) {
     invitations = value.invitations.map(item => {
       record(item, 'Saved invitation');
       const person = participants.find(person => person.id === item.giverId);
-      const payload = decodeInvitation(item.fragment);
+      const payload = Invitation.fromFragment(item.fragment);
       const recipient = participants.find(person => person.name === payload.recipient);
       if (!person || person.name !== payload.giver || !recipient || recipient.id === person.id || givers.has(person.id) || recipients.has(recipient.id) || exclusions.some(rule => rule.giverId === person.id && rule.recipientId === recipient.id)) {
         throw new ValidationError('The saved invitations do not match this exchange.');

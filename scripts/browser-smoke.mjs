@@ -1,7 +1,7 @@
 // Optional browser checks. Playwright is installed outside the repository.
 // See docs/testing.md. These are separate from the dependency-free Node suite.
 import assert from 'node:assert/strict';
-import { encodeInvitation } from '../packages/core/invitations.js';
+import { Invitation } from '../packages/core/invitations.js';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, headless: true });
@@ -163,7 +163,7 @@ try {
     await page.getByRole('link', { name: 'Create your own exchange' }).click();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     const payload = { v: 1, giver: 'Alice', recipient: '<img src=x onerror=alert(1)>', hint: '<script>bad()</script>', exchange: { name: 'Family', budget: '', date: '', instructions: '' } };
-    await page.goto(base + encodeInvitation(payload));
+    await page.goto(base + new Invitation(payload).toFragment());
     await page.getByRole('button', { name: 'Reveal my person' }).click();
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), payload.recipient);
     assert.equal(await page.locator('.reveal-card img, .reveal-card script').count(), 0);

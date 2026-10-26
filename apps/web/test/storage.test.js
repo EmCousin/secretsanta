@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { STORAGE_KEY, saveCopy, restoreCopy, deleteCopy } from '../storage.js';
-import { encodeInvitation } from '../../../packages/core/invitations.js';
+import { Invitation } from '../../../packages/core/invitations.js';
 
 function memoryStorage() {
   const values = new Map();
@@ -14,8 +14,8 @@ const draft = {
   exchange: { name: 'Family', budget: '25 €', date: '2026-12-25', instructions: '' },
 };
 const invitations = [
-  { giverId: 'alice', fragment: encodeInvitation({ v: 1, giver: 'Alice', recipient: 'Bob', hint: 'Coffee', exchange: draft.exchange }) },
-  { giverId: 'bob', fragment: encodeInvitation({ v: 1, giver: 'Bob', recipient: 'Alice', hint: 'Books', exchange: draft.exchange }) },
+  { giverId: 'alice', fragment: new Invitation({ v: 1, giver: 'Alice', recipient: 'Bob', hint: 'Coffee', exchange: draft.exchange }).toFragment() },
+  { giverId: 'bob', fragment: new Invitation({ v: 1, giver: 'Bob', recipient: 'Alice', hint: 'Books', exchange: draft.exchange }).toFragment() },
 ];
 
 test('drafts can be incomplete and saved results restore without a new draw', () => {

@@ -1,5 +1,5 @@
 import { Controller } from '../vendor/stimulus.js';
-import { decodeInvitation } from '../../../packages/core/invitations.js';
+import { Invitation } from '../../../packages/core/invitations.js';
 
 export default class extends Controller {
   static targets = ['greeting', 'reveal', 'details', 'recipient', 'hint', 'exchange', 'budget', 'date', 'instructions', 'error'];
@@ -9,18 +9,18 @@ export default class extends Controller {
   }
 
   disconnect() {
-    this.payload = null;
+    this.invitation = null;
     this.clear();
   }
 
   load() {
     this.clear();
-    this.payload = null;
+    this.invitation = null;
     this.errorTarget.hidden = true;
     this.revealTarget.hidden = true;
     try {
-      this.payload = decodeInvitation(location.hash);
-      this.greetingTarget.textContent = `${this.payload.giver}, your Secret Santa draw is ready.`;
+      this.invitation = Invitation.fromFragment(location.hash);
+      this.greetingTarget.textContent = `${this.invitation.giver}, your Secret Santa draw is ready.`;
       this.revealTarget.hidden = false;
       this.revealTarget.disabled = false;
     } catch (error) {
@@ -39,8 +39,8 @@ export default class extends Controller {
   }
 
   reveal() {
-    if (!this.payload) return;
-    const { recipient, hint, exchange } = this.payload;
+    if (!this.invitation) return;
+    const { recipient, hint, exchange } = this.invitation;
     this.recipientTarget.textContent = recipient;
     this.exchangeTarget.textContent = exchange.name;
     this.hintTarget.textContent = hint;
