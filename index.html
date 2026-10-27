@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="./apps/web/styles.css">
     <script type="module" src="./apps/web/app.js"></script>
   </head>
-  <body data-controller="festivity page" data-motion="paused" data-action="locale:changed@document->festivity#render hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
+  <body data-controller="festivity page" data-motion="paused" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
     <a class="skip-link" href="#main" data-i18n="nav.skip" data-action="click->page#skip:prevent">Skip to the exchange</a>
     <div class="snowfall" aria-hidden="true">
       <div class="snow-layer snow-far ambient-motion"></div><div class="snow-layer snow-near ambient-motion"></div>
@@ -24,7 +24,6 @@
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
       <div class="topbar-controls">
-        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
         <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
           <span id="language-label" class="sr-only" data-i18n="language.label">Language</span>
           <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">

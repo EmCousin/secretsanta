@@ -6,7 +6,7 @@
 - HTML owns the structure. Use native controls, details, validation, labels, and visible focus. Stimulus controllers add small behaviours, never framework-specific draw logic.
 - Prefer focused classes for domain behaviour and owned state, such as the draw solver and invitations. Keep low-level validation and random-number helpers as simple functions; avoid inheritance hierarchies and static-only wrapper classes.
 - Keep all interface copy in the en/fr/pt-BR catalogues, including statuses and accessible names. English HTML is the fallback baseline. Domain errors use stable codes/parameters. Language changes must preserve user input, links, and reveal state.
-- Christmas artwork is original and local. Decorative effects must not intercept input or cover text. Respect reduced motion and keep the visible pause control usable in all languages.
+- Christmas artwork is original and local. Decorative effects must not intercept input or cover text. Animations run automatically, respect system reduced motion, and have no in-app toggle or persisted motion preference.
 - JS is required for drawing and decoding. Prevent native submissions of personal data even if initialization fails. Enable JS-only controls only after successful initialization.
 - Draws stay on the device. Invitations use versioned URL fragments. Encoding is not encryption. An organiser holding everyone's links can deliberately reveal assignments.
 - Never log assignments, include recipient names in titles/metadata, or insert untrusted text with `innerHTML`.

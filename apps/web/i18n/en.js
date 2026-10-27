@@ -149,7 +149,4 @@ export default {
   'design.stepPeople': 'Add names',
   'design.stepDraw': 'Draw names',
   'design.stepShare': 'Send the links',
-  'design.pause': 'Pause animations',
-  'design.play': 'Resume animations',
-  'design.motionReduced': 'Reduced motion enabled',
 };

@@ -149,7 +149,4 @@ export default {
   'design.stepPeople': 'Ajoutez les noms',
   'design.stepDraw': 'Lancez le tirage',
   'design.stepShare': 'Envoyez les liens',
-  'design.pause': 'Mettre les animations en pause',
-  'design.play': 'Reprendre les animations',
-  'design.motionReduced': 'Animations réduites activées',
 };

@@ -84,21 +84,10 @@ try {
           elements.every(element => element.getAnimations().some(animation => animation.playState === 'running')));
         assert.equal(moving, true, 'Sleigh, smoke, windows, star and snowflakes animate');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${locale}/${width}`);
-        await page.locator('[data-festivity-target="toggle"]').click();
-        assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused');
-        assert.equal(await page.locator('.snow-layer').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
-        await page.waitForFunction(() => [...document.querySelectorAll('.ambient-motion')]
-          .every(element => element.getAnimations().every(animation => animation.playState === 'paused')));
-        assert.equal(await page.locator('.scene-sleigh').evaluate(async element => {
-          const animation = element.getAnimations()[0];
-          await animation.ready;
-          const before = animation.currentTime;
-          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-          return animation.currentTime === before;
-        }), true, 'Paused animations stop advancing');
+        assert.equal(await page.locator('.motion-toggle, [data-festivity-target]').count(), 0, 'There is no in-app motion control');
         await page.reload();
         await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
-        assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused', 'Explicit pause survives reload');
+        assert.equal(await page.locator('body').getAttribute('data-motion'), 'playing', 'Motion starts automatically after reload');
         if (locale === 'en' && (width === 375 || width === 390 || width === 1440)) {
           await page.screenshot({ path: `${screenshotDir}/secretsanta-christmas-${width}.png`, fullPage: true, animations: 'disabled' });
           if (width === 390) {
@@ -123,7 +112,7 @@ try {
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
         if (locale === 'en' && width === 390) await page.screenshot({ path: `${screenshotDir}/secretsanta-christmas-reveal.png`, fullPage: true, animations: 'disabled' });
         assert.deepEqual(errors, []);
-        console.log(`PASS ${locale}/${width}px Christmas layout, pause persistence, and reveal`);
+        console.log(`PASS ${locale}/${width}px Christmas layout, automatic motion, and reveal`);
       } finally { await context.close(); }
     }
   }
@@ -172,29 +161,63 @@ try {
     console.log('PASS language picker keyboard, outside dismissal, landscape, short screen, and enlarged text');
   } finally { await pickerContext.close(); }
 
+  const storageContext = await browser.newContext();
+  try {
+    await storageContext.addInitScript(() => {
+      Storage.prototype.setItem.call(localStorage, 'secretsanta.motion', 'paused');
+      Storage.prototype.setItem.call(localStorage, 'unrelated', 'keep');
+      window.motionStorageCalls = [];
+      for (const method of ['getItem', 'setItem', 'removeItem']) {
+        const original = Storage.prototype[method];
+        Storage.prototype[method] = function (key, ...args) {
+          if (key === 'secretsanta.motion') window.motionStorageCalls.push(method);
+          return original.call(this, key, ...args);
+        };
+      }
+    });
+    const page = await storageContext.newPage();
+    await page.goto(base);
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    assert.equal(await page.locator('body').getAttribute('data-motion'), 'playing', 'Legacy motion preferences are ignored');
+    await chooseLanguage(page, 'fr');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForFunction(() => document.body.dataset.motion === 'paused');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForFunction(() => document.body.dataset.motion === 'playing');
+    assert.deepEqual(await page.evaluate(() => window.motionStorageCalls), [], 'Motion never reads, writes, or deletes localStorage');
+    assert.equal(await page.evaluate(() => localStorage.getItem('unrelated')), 'keep');
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    assert.equal(await page.locator('body').getAttribute('data-motion'), 'playing');
+    assert.deepEqual(await page.evaluate(() => window.motionStorageCalls), []);
+    console.log('PASS legacy motion settings are ignored without accessing storage');
+  } finally { await storageContext.close(); }
+
   const context = await browser.newContext({ reducedMotion: 'reduce', locale: 'fr', viewport: { width: 320, height: 740 } });
   try {
     const page = await context.newPage();
     await page.goto(base);
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused');
-    assert.equal(await page.locator('[data-festivity-target="toggle"]').isDisabled(), true);
     assert.equal(await page.locator('.snow-layer').first().evaluate(element => getComputedStyle(element).animationName), 'none');
     assert.equal(await page.locator('.garland span').first().evaluate(element => getComputedStyle(element).animationName), 'none');
     assert.equal(await page.locator('.ambient-motion').evaluateAll(elements =>
       elements.every(element => getComputedStyle(element).animationName === 'none')), true);
     await chooseLanguage(page, 'pt-BR');
-    assert.equal(await page.locator('[data-festivity-target="toggle"]').textContent(), new I18n(['pt-BR']).t('design.motionReduced'));
+    assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused', 'Changing languages does not change the system motion setting');
     await page.locator('[data-field="name"]').nth(0).fill('Alice');
     await page.locator('[data-field="name"]').nth(1).fill('Bob');
     await page.locator('button[type="submit"]').click();
     assert.equal(await page.locator('.invitation-card').first().evaluate(element => getComputedStyle(element).animationName), 'none');
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.waitForFunction(() => document.body.dataset.motion === 'playing');
-    assert.equal(await page.locator('[data-festivity-target="toggle"]').isDisabled(), false);
-    await page.locator('[data-festivity-target="toggle"]').click();
-    assert.equal(await page.locator('.invitation-card').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Pausing never hides cards in their entrance animation');
-    console.log('PASS system reduced motion disables all effects and stays translated');
+    await page.waitForFunction(() => [...document.querySelectorAll('.ambient-motion')].every(element =>
+      element.getAnimations().some(animation => animation.playState === 'running')));
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForFunction(() => document.body.dataset.motion === 'paused');
+    assert.equal(await page.locator('.invitation-card').first().evaluate(element =>
+      getComputedStyle(element).animationName === 'none' && getComputedStyle(element).opacity === '1'), true, 'Live reduced-motion changes never leave cards hidden');
+    console.log('PASS system reduced motion disables all effects and follows live changes');
   } finally { await context.close(); }
-  console.log('17 design browser scenarios passed, including OPEN panel bounds and touch selection at 320/375/390px.');
+  console.log('18 design browser scenarios passed, including automatic/system motion and OPEN panel bounds at 320/375/390px.');
 } finally { await browser.close(); }

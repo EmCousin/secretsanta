@@ -4,7 +4,7 @@ The page uses an evergreen night sky, cranberry actions, gold highlights, cream 
 
 The house illustration includes Santa's sleigh and reindeer. A small Nativity with Mary, Joseph, and the infant Jesus stands under the Star of Bethlehem. These are decorative background details outside the functional text and forms, with no visible caption. The image has an empty alt attribute because the exchange workflow does not depend on interpreting it.
 
-Snow and lights are pointer-transparent and hidden from assistive technology. They sit behind the content; paper panels keep snow away from inputs and text. Animations are slow, with no flashing or sound. The pause/play control is translated and remembers only an explicit preference. `prefers-reduced-motion` disables both effects regardless of saved preferences. No-JS content starts with effects paused.
+Snow and lights are pointer-transparent and hidden from assistive technology. They sit behind the content; paper panels keep snow away from inputs and text. Animations are slow, with no flashing or sound. They run automatically, with no in-app toggle or motion storage. `prefers-reduced-motion` disables all effects and is followed when the system setting changes. Old motion preferences are ignored without reading, writing, or deleting browser storage. No-JS content starts with effects paused.
 
 The main form uses familiar native controls, visible focus, and a cream reading surface. Names use compact rows in one column; invitation cards use two columns on desktop and stack on phones. All static art and icons are precached, with the worker version bumped for this release.
 
@@ -16,11 +16,11 @@ Rounded panels, fields, buttons, windows, and tree shapes replace the harder edg
 
 The scene has separate local SVG layers for Santa's drifting sleigh, chimney smoke, and changing window glow. The Bethlehem star has a slow halo, while snowflakes drift at different speeds and rotations. Cards settle into place and the assignment opens with a brief transition after the user chooses to reveal it. These effects do not delay input, make network requests, or expose recipient details before consent.
 
-Every continuous effect uses the shared `ambient-motion` class. Pausing freezes their timelines. Entry/reveal effects are only enabled while motion is playing, so pausing never leaves an input or invitation trapped in a partly hidden entrance frame. System reduced motion removes all effects, including button transitions. The worker version and complete asset allowlist were updated.
+Every continuous effect uses the shared `ambient-motion` class. Entry/reveal effects are only enabled while motion is playing. System reduced motion removes all effects, including button transitions, without leaving inputs or invitations trapped in a partly hidden entrance frame. The worker version and complete asset allowlist were updated.
 
 ## Mobile language selector
 
-The language picker is a quiet toolbar disclosure with a small flag/globe and the current interface code (EN, FR, or PT-BR). The full translated label and selected preference remain available to assistive technology. Its closed surface is transparent; a subtle background and border appear on hover or opening. A wrapping toolbar keeps the pause control usable on narrow screens and with enlarged text.
+The language picker is a quiet toolbar disclosure with a small flag/globe and the current interface code (EN, FR, or PT-BR). The full translated label and selected preference remain available to assistive technology. Its closed surface is transparent; a subtle background and border appear on hover or opening. It stays at the right of the toolbar on narrow screens and with enlarged text.
 
 A native details/summary disclosure opens a labelled fieldset of native radio controls. The panel is right-aligned and sized independently of the compact trigger, up to 20rem or the viewport minus side gutters. Full language names wrap and scroll internally when vertical space is limited. A small Stimulus controller measures the available height and opens the panel above the trigger when needed. Text is at least 16px, with a 48px minimum trigger and choice rows.
 
@@ -46,10 +46,10 @@ Invitation links hide the organiser welcome and open on a compact, personalised 
 - [Compact mobile name entry](screenshots/name-entry.webp)
 - [Participant invitation, 375 × 667px](screenshots/invitation.webp)
 
-Organiser and participant snapshots show effects paused; the open-picker snapshot keeps effects running. Names in the participant snapshot are test fixtures. These review assets are not precached.
+Screenshot tooling temporarily freezes effects for organiser and participant captures; the app itself keeps automatic motion. The open-picker snapshot keeps effects running. Names in the participant snapshot are test fixtures. These review assets are not precached.
 
 ## Verification
 
-The design smoke script checks 320px, 375px, 390px, 768px, and 1440px in English, French, and Brazilian Portuguese. It checks overflow, pausing and persistence, normal reveal behaviour, and system reduced motion. At mobile widths it checks the open options panel, touch selection, readable text, hit-area size, and language changes. Desktop, mobile, open-picker, and reveal screenshots were inspected.
+The design smoke script checks 320px, 375px, 390px, 768px, and 1440px in English, French, and Brazilian Portuguese. It checks overflow, automatic motion after reload, absence of motion controls/storage access, normal reveal behaviour, and live system reduced motion. At mobile widths it checks the open options panel, touch selection, readable text, hit-area size, and language changes. Desktop, mobile, open-picker, and reveal screenshots were inspected.
 
 The optional axe audit runs WCAG A/AA rules against organiser/options, the open language picker, invitation cards, redraw dialog, pre-reveal, and revealed views in all 3 languages. These automated checks do not establish full accessibility conformance. Screen-reader use, physical-device touch behaviour, actual zoom, and native OS interfaces still need manual review.
