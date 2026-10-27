@@ -2,6 +2,7 @@
 // See docs/testing.md. These are separate from the dependency-free Node suite.
 import assert from 'node:assert/strict';
 import { Invitation } from '../packages/core/invitations.js';
+import { chooseLanguage } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, headless: true });
@@ -71,13 +72,13 @@ try {
     await page.getByRole('button', { name: 'Edit this exchange', exact: true }).click();
     await page.locator('[data-exchange-target="form"]:visible').waitFor();
     await page.goto(invitation);
-    await page.getByRole('button', { name: 'Reveal my person' }).waitFor();
+    await page.getByRole('button', { name: 'See who I got' }).waitFor();
     await page.keyboard.press('Tab');
     await page.getByRole('link', { name: 'Skip to the exchange' }).focus();
     await page.keyboard.press('Enter');
     assert.equal(page.url(), invitation, 'Skip navigation preserves the invitation fragment');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '', 'Recipient absent before reveal');
-    await page.getByRole('button', { name: 'Reveal my person' }).click();
+    await page.getByRole('button', { name: 'See who I got' }).click();
     assert.ok(['Bob', 'Charlie'].includes(await page.locator('[data-invitation-target="recipient"]').textContent()));
     assert.equal(await page.title(), 'Secret Santa');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
@@ -152,19 +153,19 @@ try {
     assert.equal(await card.locator('input').evaluate(input => input.selectionEnd - input.selectionStart), link.length);
     await page.getByRole('button', { name: 'Edit and draw again' }).click();
     await page.keyboard.press('Escape');
-    assert.equal(await page.locator('dialog').isVisible(), false);
+    assert.equal(await page.locator('[data-exchange-target="confirm"]').isVisible(), false);
     assert.equal(await page.getByRole('button', { name: 'Edit and draw again' }).evaluate(button => button === document.activeElement), true);
   });
 
   await check('malformed invitations recover; decoded markup remains text', async page => {
     await page.goto(`${base}#santa=1.bad`);
     await page.locator('[data-invitation-target="error"]:visible').waitFor();
-    assert.equal(await page.getByRole('button', { name: 'Reveal my person' }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'See who I got' }).count(), 0);
     await page.getByRole('link', { name: 'Create your own exchange' }).click();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     const payload = { v: 1, giver: 'Alice', recipient: '<img src=x onerror=alert(1)>', hint: '<script>bad()</script>', exchange: { name: 'Family', budget: '', date: '', instructions: '' } };
     await page.goto(base + new Invitation(payload).toFragment());
-    await page.getByRole('button', { name: 'Reveal my person' }).click();
+    await page.getByRole('button', { name: 'See who I got' }).click();
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), payload.recipient);
     assert.equal(await page.locator('.reveal-card img, .reveal-card script').count(), 0);
     await page.goto(`${base}#santa=2.bad`);
@@ -187,6 +188,7 @@ try {
     assert.equal(await page.getByRole('button', { name: 'Draw names', exact: true }).isDisabled(), true);
     assert.match(await page.locator('noscript').textContent(), /JavaScript is required/);
     assert.equal(await page.locator('[data-exchange-target="controls"]').getAttribute('disabled'), '');
+    assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
   }, { javaScriptEnabled: false }, true);
 
   await check('failed initialization keeps controls disabled and a visible explanation', async page => {
@@ -195,13 +197,14 @@ try {
     assert.equal(await page.getByRole('button', { name: 'Draw names', exact: true }).isDisabled(), true);
     assert.equal(await page.locator('#startup').isVisible(), true);
     assert.equal(await page.locator('[data-exchange-target="storageButton"]').first().isDisabled(), true);
+    assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
   }, {}, true);
 
   await check('Portuguese detection and live language switching preserve the draw and reveal', async page => {
     await open(page);
     assert.equal(await page.locator('html').getAttribute('lang'), 'pt-BR');
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Nosso Amigo Secreto');
-    await page.locator('#language').selectOption('fr');
+    await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Notre Père Noël secret');
     await page.locator('#exchange-name').fill('Natal em família');
     await page.locator('[data-field="name"]').nth(0).fill('Maël');
@@ -211,18 +214,18 @@ try {
     await page.locator('#budget').fill('R$ 50');
     await page.locator('button[type="submit"]').click();
     const link = await page.locator('[data-share-target="link"]').first().inputValue();
-    await page.locator('#language').selectOption('en');
+    await chooseLanguage(page, 'en');
     assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), link);
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Natal em família');
     assert.match(await page.locator('.invitation-card h3').first().textContent(), /Invitation for Maël/);
     await page.goto(link);
     await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
-    await page.locator('#language').selectOption('pt-BR');
+    await chooseLanguage(page, 'pt-BR');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '');
     await page.locator('[data-invitation-target="reveal"]').click();
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
     assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 de dezembro de 2026/);
-    await page.locator('#language').selectOption('fr');
+    await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
     assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Natal em família');
     assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 décembre 2026/);
@@ -232,11 +235,11 @@ try {
   await check('unsupported languages fall back to English and explicit preferences persist', async page => {
     await open(page);
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
-    await page.locator('#language').selectOption('fr');
+    await chooseLanguage(page, 'fr');
     await page.reload();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
-    await page.locator('#language').selectOption('');
+    await chooseLanguage(page, '');
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     assert.equal(await page.evaluate(() => localStorage.getItem('secretsanta.language')), null);
   }, { locale: 'de-DE' });
@@ -250,7 +253,7 @@ try {
     await page.locator('[data-field="name"]').nth(1).fill('alice');
     await page.locator('button[type="submit"]').click();
     assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /noms distincts/);
-    await page.locator('#language').selectOption('pt-BR');
+    await chooseLanguage(page, 'pt-BR');
     assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /nomes diferentes/);
     await page.goto(`${base}#santa=1.bad`);
     await page.locator('[data-invitation-target="error"]:visible').waitFor();

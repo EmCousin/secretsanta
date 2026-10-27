@@ -39,6 +39,8 @@ The root manifest declares npm workspaces for organisation only. Browser imports
 - [Organiser and participant experience](https://github.com/EmCousin/secretsanta/issues/2)
 - [Remaining reference-app parity](https://github.com/EmCousin/secretsanta/issues/7): forced pairings, bulk entry, and export choices remain open follow-ups.
 - [Localisation](https://github.com/EmCousin/secretsanta/issues/9): English, French, and Brazilian Portuguese.
+- [Offline/PWA support](https://github.com/EmCousin/secretsanta/issues/11): installable static app with versioned, app-scoped offline caching.
+- [Christmas design](https://github.com/EmCousin/secretsanta/issues/10): original snowy-house, Santa, and Nativity artwork, with pausable snow and lights.
 
 Implementation is reviewed through pull requests. Stacked PRs identify their prerequisite and merge order.
 
@@ -69,3 +71,19 @@ Catalogues are local JS modules in `apps/web/i18n`, with English fallback per ke
 Publish the repository's files to an HTTPS static host, with the repository root as the document root. There is no build output or server application, and no route rewrites are needed. Relative assets and fragment invitations also work below a subpath. Exclude `.git`, tests, and development documentation from a public deployment if the host would otherwise expose them. Do not deploy a checkout containing personal draw data.
 
 If the host supports response headers, add `Content-Security-Policy: frame-ancestors 'none'` to prevent embedding; that directive cannot be enforced through the HTML meta policy. The meta policy already restricts script/style sources, connections, and form submissions. Deployments must continue serving v1-compatible invitation decoding so previously shared links remain usable. No deployment is configured by this repository.
+
+## Offline use and installation
+
+Open the site online once and wait for **Ready to use offline on this device**. Then drawing, language switching, explicit local saving/restoring, and revealing self-contained invitations work without a connection. A different device must complete its own online first visit. Browsers may evict caches; offline readiness cannot guarantee permanent storage. Sending a link through a messaging service still needs a connection.
+
+Use the browser's Install/Add to Home Screen menu where available; iOS Safari exposes it through Share. Installation is optional and does not create an account. HTTPS or localhost is required for service workers and cryptographic browser APIs. Private browsing or restrictive settings may disable offline caching; the app remains usable online.
+
+The worker caches only a fixed list of static files. It canonicalises app navigations to the cached HTML; it never stores invitation fragments, query variants, forms, or personal results. Saved exchanges remain a separate explicit action. Same-origin requests are allowed by CSP for worker installation; external connections remain blocked.
+
+Updates install a complete new cache before activation. An active page offers an update button and a warning before reload; it does not reload automatically or save your work silently. See [offline maintenance](docs/offline.md) and [tests](docs/testing.md).
+
+## Christmas design
+
+The original local illustration includes a warm Christmas house, Santa's sleigh, and a Nativity scene with Mary, Joseph, the infant Jesus, and the Star of Bethlehem. Evergreen, cranberry, gold, falling snow, and twinkling lights carry through the organiser and participant screens. The visual direction evokes a cosy Christmas film without including movie assets.
+
+Use the visible snow/lights control to pause the effects. System reduced-motion settings disable them; the layout and artwork remain complete without animation or JavaScript. No external fonts, media, or audio are loaded. [Design notes and review screenshots](docs/design.md) describe the artwork and accessibility checks.

@@ -33,6 +33,15 @@ test('HTML translations refer to known keys, including template attributes', asy
   }
 });
 
+test('the no-JavaScript HTML copy stays in sync with the English catalogue', async () => {
+  const html = await readFile(new URL('../../../index.html', import.meta.url), 'utf8');
+  const entities = { '&amp;': '&', '&quot;': '"', '&#39;': "'", '&lt;': '<', '&gt;': '>' };
+  for (const [, key, text] of html.matchAll(/data-i18n="([^"]+)"(?:[^>"']|"[^"]*"|'[^']*')*>([^<]*)</g)) {
+    const decoded = text.trim().replace(/&amp;|&quot;|&#39;|&lt;|&gt;/g, entity => entities[entity]);
+    assert.equal(decoded, CATALOGUES.en[key], key);
+  }
+});
+
 test('missing translations fall back to English; interpolation is plain text', () => {
   const i18n = new I18n(['fr']);
   CATALOGUES.en['test.fallback'] = 'English fallback';

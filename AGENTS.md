@@ -5,10 +5,13 @@
 - The root `index.html` is the static entry point. Browser behaviour belongs in `apps/web`; framework-independent logic belongs in `packages/core`.
 - HTML owns the structure. Use native controls, details, validation, labels, and visible focus. Stimulus controllers add small behaviours, never framework-specific draw logic.
 - Prefer focused classes for domain behaviour and owned state, such as the draw solver and invitations. Keep low-level validation and random-number helpers as simple functions; avoid inheritance hierarchies and static-only wrapper classes.
+- Keep all interface copy in the en/fr/pt-BR catalogues, including statuses and accessible names. English HTML is the fallback baseline. Domain errors use stable codes/parameters. Language changes must preserve user input, links, and reveal state.
+- Christmas artwork is original and local. Decorative effects must not intercept input or cover text. Respect reduced motion and keep the visible pause control usable in all languages.
 - JS is required for drawing and decoding. Prevent native submissions of personal data even if initialization fails. Enable JS-only controls only after successful initialization.
 - Draws stay on the device. Invitations use versioned URL fragments. Encoding is not encryption. An organiser holding everyone's links can deliberately reveal assignments.
 - Never log assignments, include recipient names in titles/metadata, or insert untrusted text with `innerHTML`.
 - Local saving is explicit and optional. Do not clear unrelated origin storage. Old invitations cannot be revoked by a redraw or deletion.
+- Static app assets are automatically cached for offline use after an online visit. Never cache draw data or arbitrary navigations. Keep the service worker allowlist complete and bump its version for every runtime release. Updates require consent before reloading an active page.
 - Vendor updates must pin a version and retain the upstream licence. No production dependency fetches.
 - Run `npm test` before opening a PR. No install is required. Add regression tests for domain changes and update the browser checklist for UI changes.
 - Leave PRs unmerged unless the user asks to merge. State dependencies and merge order for stacked PRs.
