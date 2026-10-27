@@ -36,7 +36,7 @@ test('precache covers every shipped runtime asset and contains no personal URLs'
   }
   for (const directory of ['apps/web/', 'packages/core/']) {
     const files = await readdir(new URL(directory, root), { recursive: true });
-    for (const file of files.filter(file => /\.(?:js|css|svg|png)$/.test(file) && !file.startsWith('test/'))) {
+    for (const file of files.filter(file => /\.(?:js|css|svg|png|ttf|woff2)$/.test(file) && !file.startsWith('test/'))) {
       assert.ok(assets.includes(`./${directory}${file}`), `${file} must work offline`);
     }
   }

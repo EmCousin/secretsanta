@@ -36,9 +36,11 @@ export default class extends Controller {
   }
 
   clear() {
-    this.detailsTarget.hidden = true;
+    // Route changes remove data-controller before disconnect runs. Query the
+    // owned DOM directly so previously revealed text is cleared in that state too.
+    this.element.querySelector('[data-invitation-target="details"]').hidden = true;
     for (const name of ['recipient', 'hint', 'exchange', 'budget', 'date', 'instructions']) {
-      this[`${name}Target`].textContent = '';
+      this.element.querySelector(`[data-invitation-target="${name}"]`).textContent = '';
     }
   }
 

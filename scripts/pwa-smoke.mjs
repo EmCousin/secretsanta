@@ -5,14 +5,14 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, sep, extname } from 'node:path';
 import { Invitation } from '../packages/core/invitations.js';
-import { chooseLanguage } from './browser-helpers.mjs';
+import { chooseLanguage, openPanel, openStorage } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
 let release = 0;
 let failInstall = false;
 const requested = [];
-const types = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+const types = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.ttf': 'font/ttf', '.webmanifest': 'application/manifest+json' };
 const server = createServer(async (request, response) => {
   requested.push(request.url);
   try {
@@ -69,13 +69,14 @@ try {
       await page.locator('[data-field="name"]').nth(1).fill('Bruno');
       await page.locator('button[type="submit"]').click();
       const originalLink = await page.locator('[data-share-target="link"]').first().inputValue();
-      await page.locator('[data-i18n="storage.summary"]').click();
+      await openStorage(page);
       await page.locator('[data-action="exchange#save"]').click();
 
       await context.setOffline(true);
       await page.reload();
       await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
-      await page.locator('[data-i18n="storage.summary"]').click();
+      assert.equal(await page.evaluate(async () => (await document.fonts.load('32px "Berkshire Swash"', 'Noël João')).length === 1), true, 'The festive font loads offline');
+      await openStorage(page);
       await page.locator('[data-action="exchange#restore"]').click();
       assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), originalLink);
       await chooseLanguage(page, 'fr');
@@ -121,6 +122,7 @@ try {
       assert.equal(await page.evaluate(async () => (await caches.keys()).filter(name => name.startsWith('secretsanta-shell:')).length), 1);
       console.log(`PASS ${prefix} worker update waits for consent and preserves unrelated caches`);
 
+      await openPanel(page, 'settings');
       await page.locator('#exchange-name').fill('Keep my unfinished draft');
       release++;
       failInstall = true;

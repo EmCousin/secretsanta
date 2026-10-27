@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <meta name="description" data-i18n-content="app.description" content="Draw names and share Secret Santa invitations. No accounts or installation.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <meta name="theme-color" content="#103e35">
     <title data-i18n="app.title">Secret Santa</title>
     <link rel="icon" href="./apps/web/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" href="./apps/web/icons/apple-touch-icon.png">
     <link rel="stylesheet" href="./apps/web/styles.css">
+    <link rel="preload" href="./apps/web/fonts/BerkshireSwash-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <script type="module" src="./apps/web/app.js"></script>
   </head>
-  <body data-controller="festivity" data-motion="paused" data-action="locale:changed@document->festivity#render">
+  <body data-controller="festivity page" data-motion="paused" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
+    <a class="skip-link" href="#main" data-i18n="nav.skip" data-action="click->page#skip:prevent">Skip to the exchange</a>
     <div class="snowfall" aria-hidden="true">
       <div class="snow-layer snow-far ambient-motion"></div><div class="snow-layer snow-near ambient-motion"></div>
       <div class="snow-crystals"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
@@ -22,28 +24,30 @@
     <div class="garland" aria-hidden="true"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
-      <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
-      <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
-        <span id="language-label" data-i18n="language.label">Language</span>
-        <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">
-          <summary id="language" aria-disabled="true" aria-labelledby="language-label language-current" aria-controls="language-options" data-locale-target="trigger" data-action="keydown.down->locale#focusOptions:prevent keydown.up->locale#focusOptions:prevent"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt="" data-locale-target="currentIcon"><span id="language-current" data-locale-target="current">Automatic (browser)</span></span></summary>
-          <fieldset id="language-options" class="language-options" disabled data-locale-target="choices" data-action="change->locale#change click->locale#choose keydown.enter->locale#commit:prevent">
-            <legend class="sr-only" data-i18n="language.label">Language</legend>
-            <label><input type="radio" name="interface-language" value="" checked data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt=""><span class="language-name" data-i18n="language.auto">Automatic (browser)</span></span></label>
-            <label lang="en"><input type="radio" name="interface-language" value="en" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/en.svg" width="24" height="18" alt=""><span class="language-name">English</span></span></label>
-            <label lang="fr"><input type="radio" name="interface-language" value="fr" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/fr.svg" width="24" height="18" alt=""><span class="language-name">Français</span></span></label>
-            <label lang="pt-BR"><input type="radio" name="interface-language" value="pt-BR" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/pt-BR.svg" width="24" height="18" alt=""><span class="language-name">Português (Brasil)</span></span></label>
-          </fieldset>
-        </details>
+      <div class="topbar-controls">
+        <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
+          <span id="language-label" class="sr-only" data-i18n="language.label">Language</span>
+          <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">
+            <summary id="language" aria-disabled="true" aria-labelledby="language-label language-current" aria-controls="language-options" data-locale-target="trigger" data-action="keydown.down->locale#focusOptions:prevent keydown.up->locale#focusOptions:prevent"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt="" data-locale-target="currentIcon"><span id="language-current" class="sr-only" data-locale-target="current">Automatic (browser)</span><span aria-hidden="true" data-i18n="language.short">EN</span></span></summary>
+            <fieldset id="language-options" class="language-options" disabled data-locale-target="choices" data-action="change->locale#change click->locale#choose keydown.enter->locale#commit:prevent">
+              <legend class="sr-only" data-i18n="language.label">Language</legend>
+              <label><input type="radio" name="interface-language" value="" checked data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt=""><span class="language-name" data-i18n="language.auto">Automatic (browser)</span></span></label>
+              <label lang="en"><input type="radio" name="interface-language" value="en" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/en.svg" width="24" height="18" alt=""><span class="language-name">English</span></span></label>
+              <label lang="fr"><input type="radio" name="interface-language" value="fr" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/fr.svg" width="24" height="18" alt=""><span class="language-name">Français</span></span></label>
+              <label lang="pt-BR"><input type="radio" name="interface-language" value="pt-BR" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/pt-BR.svg" width="24" height="18" alt=""><span class="language-name">Português (Brasil)</span></span></label>
+            </fieldset>
+          </details>
+        </div>
       </div>
     </div>
-    <header class="site-header">
+    <div class="app-layout">
+    <header class="site-header" data-page-target="welcome">
       <div class="hero-copy">
-        <p class="eyebrow" data-i18n="hero.kicker">Christmas gift exchange</p>
         <h1 data-i18n="app.title">Secret Santa</h1>
         <p class="christmas-wish" data-i18n="design.wish">Who's buying for whom?</p>
-        <p class="hero-tagline" data-i18n="hero.tagline">Add the names and we'll do the draw. Everyone gets a private link to see who they're buying for.</p>
-        <ul class="hero-promises"><li data-i18n="design.noAccounts">No account needed</li><li data-i18n="design.offline">Works offline after setup</li><li data-i18n="design.private">Send links privately</li></ul>
+        <p class="hero-tagline" data-i18n="hero.tagline">Draw names and send everyone a private invitation.</p>
+        <button class="primary hero-start" type="button" disabled data-page-target="start" data-action="page#start" data-i18n="hero.start">Start a draw</button>
+        <p class="hero-reassurance" data-i18n="design.noAccounts">No account needed</p>
       </div>
       <figure class="hero-scene">
         <div class="scene-stage" aria-hidden="true">
@@ -53,47 +57,33 @@
           <img class="scene-layer scene-sleigh ambient-motion" src="./apps/web/art/sleigh.svg" width="760" height="570" alt="">
           <span class="scene-star ambient-motion"></span>
         </div>
-        <figcaption><span aria-hidden="true">✦</span> <span data-i18n="design.nativity">Under the Star of Bethlehem</span> <span aria-hidden="true">✦</span></figcaption>
       </figure>
     </header>
-    <main id="main" tabindex="-1" data-controller="page" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
-      <a class="skip-link" href="#main" data-i18n="nav.skip" data-action="click->page#skip:prevent">Skip to the exchange</a>
+    <main id="main" tabindex="-1" data-page-target="workspace">
       <p id="startup" class="notice" role="status" data-i18n="app.startup" data-page-target="startup">The app is loading. If this message stays, check that JavaScript is enabled and reload.</p>
       <noscript><p class="notice" data-i18n="app.noJs">JavaScript is required to draw names on your device and open invitations. No draw details are sent to an application server.</p></noscript>
 
-      <section data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize" aria-labelledby="organiser-title">
-        <div class="workshop-ribbon" data-i18n="design.workshop">The Christmas draw</div>
-        <div class="section-heading">
-          <p class="eyebrow" data-i18n="organiser.kicker">Set up the draw</p>
-          <h2 id="organiser-title" data-i18n="organiser.title">Who's taking part?</h2>
-          <p data-i18n="organiser.intro">Add everyone below, then draw the names. Send each person their own link without opening it yourself.</p>
-        </div>
-        <ol class="exchange-steps" aria-label="How it works" data-i18n-aria-label="design.steps"><li><span aria-hidden="true">01</span><span data-i18n="design.stepPeople">Add names</span></li><li><span aria-hidden="true">02</span><span data-i18n="design.stepDraw">Draw names</span></li><li><span aria-hidden="true">03</span><span data-i18n="design.stepShare">Send the links</span></li></ol>
-        <details class="storage-panel">
-          <summary data-i18n="storage.summary">Save or restore on this device</summary>
-          <p data-i18n="storage.intro">Saving is optional and keeps one readable copy in this browser, including any generated invitations. Use a device you trust. Saving again replaces the previous copy. Restoring replaces what's on this screen.</p>
-          <div class="button-row">
-            <button type="button" disabled data-i18n="storage.save" data-exchange-target="storageButton" data-action="exchange#save">Save on this device</button>
-            <button type="button" disabled data-i18n="storage.restore" data-exchange-target="storageButton" data-action="exchange#restore">Restore saved copy</button>
-            <button type="button" disabled class="quiet" data-i18n="storage.delete" data-exchange-target="storageButton" data-action="exchange#deleteSaved">Delete saved copy</button>
-          </div>
-        </details>
+      <section class="exchange-workspace" data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize exchange:start->exchange#start" aria-labelledby="organiser-title">
+        <h2 id="organiser-title" class="sr-only" data-i18n="form.legend">Create your exchange</h2>
         <p class="status" role="status" aria-live="polite" data-exchange-target="status"></p>
         <p class="error" role="alert" tabindex="-1" hidden data-exchange-target="error"></p>
 
-        <form data-exchange-target="form" data-action="submit->exchange#draw:prevent">
-          <fieldset disabled data-exchange-target="controls">
+        <form data-exchange-target="form" data-action="submit->exchange#draw:prevent invalid->exchange#showInvalid:capture">
+          <fieldset class="workflow-controls" disabled data-exchange-target="controls">
             <legend class="sr-only" data-i18n="form.legend">Create your exchange</legend>
-            <label for="exchange-name" data-i18n="form.occasion">What's the occasion?</label>
-            <input id="exchange-name" type="text" value="Our Secret Santa" data-i18n-default="form.defaultName" required maxlength="80" autocomplete="off" data-exchange-target="name">
-
-            <h3 data-i18n="form.people">Names</h3>
-            <p class="help" data-i18n="form.peopleHelp">Add 2 to 50 people. Use a nickname or surname if two people share a name. Nobody can draw themselves.</p>
-            <div class="people" data-exchange-target="people"></div>
-            <button type="button" data-i18n="form.addPerson" data-action="exchange#addPerson">Add another person</button>
-
-            <details class="optional">
-              <summary data-i18n="form.options">Budget, date, and a note</summary>
+            <details class="workflow-panel" name="exchange-panels" open data-exchange-target="participantsPanel">
+              <summary id="participants-title" aria-controls="participants-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.participants">Participants</span></summary>
+              <div id="participants-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="participants-title"><div class="workflow-content">
+                <p class="help" data-i18n="form.peopleHelp">At least 2 people. Nobody draws themselves.</p>
+                <div class="people" role="group" aria-label="Names" data-i18n-aria-label="form.people" data-exchange-target="people"></div>
+                <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
+              </div></div>
+            </details>
+            <details class="workflow-panel" name="exchange-panels" data-exchange-target="settingsPanel">
+              <summary id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></summary>
+              <div id="settings-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="settings-title"><div class="workflow-content">
+              <label for="exchange-name" data-i18n="form.occasion">Exchange name</label>
+              <input id="exchange-name" type="text" value="Our Secret Santa" data-i18n-default="form.defaultName" required maxlength="80" autocomplete="off" data-exchange-target="name">
               <div class="two-columns">
                 <div><label for="budget" data-i18n="form.budget">Budget (optional)</label><input id="budget" type="text" maxlength="80" placeholder="Around 25 €" data-i18n-placeholder="form.budgetPlaceholder" data-exchange-target="budget"></div>
                 <div><label for="date" data-i18n="form.date">Exchange date (optional)</label><input id="date" type="date" data-exchange-target="date"></div>
@@ -101,8 +91,6 @@
               <label for="instructions" data-i18n="form.instructions">A note for everyone (optional)</label>
               <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-i18n-placeholder="form.instructionsPlaceholder" data-exchange-target="instructions"></textarea>
               <p class="help" data-i18n="form.snapshots">Details and gift hints are included in the invitations. They won't update after you send them.</p>
-            </details>
-
             <details class="optional">
               <summary data-i18n="form.exclusions">Who shouldn't draw whom?</summary>
               <p class="help" data-i18n="form.exclusionsHelp">For example, stop partners drawing each other. Each rule works in one direction; add the reverse rule if needed.</p>
@@ -113,20 +101,38 @@
               <button type="button" data-i18n="form.addExclusion" data-action="exchange#addRule">Add exclusion</button>
               <ul class="rules" data-exchange-target="rules"></ul>
             </details>
-            <div class="draw-action">
-              <button class="primary" type="submit" data-i18n="form.draw">Draw names</button>
+              </div></div>
+            </details>
+            <details class="workflow-panel" name="exchange-panels" data-exchange-target="linksPanel">
+              <summary id="links-title" aria-controls="links-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.links">Links to share</span></summary>
+              <div id="links-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="links-title"><div class="workflow-content">
+                <p data-exchange-target="emptyResults" data-i18n="workflow.empty">Your invitations will appear here. You can save a draft below.</p>
+        <section hidden data-exchange-target="results" aria-labelledby="results-title">
+          <h2 id="results-title" tabindex="-1" data-i18n="results.title" data-exchange-target="resultHeading">Your invitations are ready.</h2>
+          <p data-i18n="results.intro">Send each link only to the person named on its card.</p>
+          <p class="notice" data-i18n="results.notice">Anyone with a link can reveal that person's assignment. We can't check delivery, recover lost links, or revoke old invitations.</p>
+          <div class="invitation-cards" role="group" aria-label="Invitations" data-i18n-aria-label="results.list" data-exchange-target="cards"></div>
+          <button type="button" class="quiet" data-i18n="results.edit" data-action="exchange#requestEdit">Edit and draw again</button>
+        </section>
+
+        <details class="storage-panel">
+          <summary data-i18n="storage.summary">Save or restore on this device</summary>
+          <p data-i18n="storage.intro">Optional: keep one readable copy in this browser, including invitations. Use a device you trust. Saving replaces the old copy; restoring replaces this screen.</p>
+          <div class="button-row">
+            <button type="button" disabled data-i18n="storage.save" data-exchange-target="storageButton" data-action="exchange#save">Save on this device</button>
+            <button type="button" disabled data-i18n="storage.restore" data-exchange-target="storageButton" data-action="exchange#restore">Restore saved copy</button>
+            <button type="button" disabled class="quiet" data-i18n="storage.delete" data-exchange-target="storageButton" data-action="exchange#deleteSaved">Delete saved copy</button>
+          </div>
+        </details>
+
+              </div></div>
+            </details>
+            <div class="draw-action" data-exchange-target="matchActions">
+              <button class="primary" type="submit" data-exchange-target="matchButton" data-action="exchange#prepareDraw" data-i18n="form.draw">Match everyone</button>
               <p class="help" data-i18n="form.drawHelp">The draw happens on your device. Nothing is saved automatically.</p>
             </div>
           </fieldset>
         </form>
-
-        <section hidden data-exchange-target="results" aria-labelledby="results-title">
-          <h2 id="results-title" tabindex="-1" data-i18n="results.title" data-exchange-target="resultHeading">Your invitations are ready.</h2>
-          <p data-i18n="results.intro">Send each link only to the person named on its card. Keep everyone's links private, including from the group chat.</p>
-          <p class="notice" data-i18n="results.notice">Anyone with a link can reveal that person's assignment. We can't check delivery, recover lost links, or revoke old invitations.</p>
-          <div class="invitation-cards" data-exchange-target="cards"></div>
-          <button type="button" class="quiet" data-i18n="results.edit" data-action="exchange#requestEdit">Edit and draw again</button>
-        </section>
 
         <dialog aria-labelledby="redraw-title" aria-describedby="redraw-description" data-exchange-target="confirm">
           <h2 id="redraw-title" data-i18n="redraw.title">Start a new draw?</h2>
@@ -138,12 +144,14 @@
         </dialog>
 
         <template data-exchange-target="personTemplate">
-          <section class="person-row" data-action="input->exchange#updatePeople">
-            <div class="person-heading"><h4 data-person-number>Person</h4><button type="button" class="quiet compact" data-i18n="form.remove" data-remove data-action="exchange#removePerson">Remove</button></div>
-            <label data-label="name" data-i18n="form.name">Name</label>
-            <input type="text" required maxlength="60" autocomplete="off" data-field="name">
-            <details class="hint-details"><summary data-i18n="form.hint">Add a gift hint (optional)</summary><label data-label="hint" data-i18n="form.hintLabel">What would they enjoy?</label><textarea rows="2" maxlength="240" data-field="hint"></textarea></details>
-          </section>
+          <div class="person-row" data-action="input->exchange#updatePeople">
+            <div class="name-row">
+              <label class="sr-only" data-label="name" data-person-number>Name</label>
+              <input type="text" required maxlength="60" autocomplete="off" enterkeyhint="next" placeholder="Name" data-i18n-placeholder="form.name" data-field="name" data-action="keydown.enter->exchange#nextPerson">
+              <button type="button" class="quiet compact" data-i18n="form.remove" data-remove data-action="exchange#removePerson">Remove</button>
+            </div>
+            <details class="hint-details"><summary data-i18n="form.hint">Gift hint</summary><label data-label="hint" data-i18n="form.hintLabel">What would they enjoy?</label><textarea rows="2" maxlength="240" data-field="hint"></textarea></details>
+          </div>
         </template>
         <template data-exchange-target="ruleTemplate"><li><span></span><button type="button" class="quiet compact" data-i18n="form.remove" data-action="exchange#removeRule">Remove</button></li></template>
         <template data-exchange-target="cardTemplate">
@@ -161,9 +169,10 @@
       </section>
 
       <section class="participant" hidden data-page-target="invitation" data-action="invitation:reload->invitation#load locale:changed@document->invitation#localize" aria-labelledby="invitation-title">
+        <img class="invitation-stamp" src="./apps/web/icon.svg" width="48" height="48" alt="">
         <p class="eyebrow" data-i18n="participant.kicker">Your invitation</p>
-        <h2 id="invitation-title" data-invitation-target="greeting">Your Secret Santa invitation</h2>
-        <p data-i18n="participant.guard">Only continue if this invitation is for you. Opening someone else's link will spoil their surprise.</p>
+        <h1 id="invitation-title" data-invitation-target="greeting">Your Secret Santa invitation</h1>
+        <p data-i18n="participant.guard">Open only if this invitation is for you.</p>
         <p class="error" role="alert" hidden data-invitation-target="error"></p>
         <button class="primary" type="button" disabled data-i18n="participant.reveal" data-invitation-target="reveal" data-action="invitation#reveal">See who I got</button>
         <section class="reveal-card" hidden data-invitation-target="details" aria-label="Your assignment" data-i18n-aria-label="participant.assignment">
@@ -179,6 +188,7 @@
         <p><a href="./" data-i18n="participant.newExchange">Create your own exchange</a></p>
       </section>
     </main>
+    </div>
     <footer>
       <section class="offline-panel" hidden data-controller="pwa" data-action="locale:changed@document->pwa#localize online@window->pwa#localize offline@window->pwa#localize" aria-label="Offline access" data-i18n-aria-label="pwa.label">
         <p role="status" aria-live="polite" data-pwa-target="status">Preparing offline access…</p>
@@ -190,7 +200,6 @@
           <div class="button-row"><button type="button" autofocus data-action="pwa#cancelUpdate" data-i18n="pwa.later">Keep working</button><button type="button" class="primary" data-action="pwa#applyUpdate" data-i18n="pwa.reload">Reload and update</button></div>
         </dialog>
       </section>
-      <p data-i18n="footer.summary">You can use this without an account or installing anything. The draw stays on your device.</p>
       <details><summary data-i18n="footer.privacyTitle">About your privacy</summary><p data-i18n="footer.privacyBody">This site has no application backend or analytics. Invitations carry their data in the part of the link after #, which isn't sent to the static host in an HTTP request. The host still receives normal website requests. Anyone holding a link, including the organiser or messaging provider carrying it, may read its contents. Links are encoded, not encrypted or verified. Saving a copy is optional and local to this browser.</p></details>
     </footer>
   </body>
