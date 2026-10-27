@@ -233,6 +233,44 @@ try {
     assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => element.getAnimations().length === 0)), true);
   }, { viewport: { width: 1366, height: 768 } });
 
+  await check('mobile swipes over the beige workspace scroll the page', async page => {
+    await open(page);
+    for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();
+    const body = page.locator('#participants-body');
+    assert.equal(await body.evaluate(element => getComputedStyle(element).overflowY), 'visible');
+    await page.evaluate(() => window.scrollTo(0, document.querySelector('main').offsetTop));
+    const before = await page.evaluate(() => window.scrollY);
+    const box = await body.boundingBox();
+    const x = box.x + box.width - 12;
+    const y = Math.min(570, Math.max(300, box.y + 180));
+    const session = await page.context().newCDPSession(page);
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let offset = 30; offset <= 210; offset += 30) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - offset }] });
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForFunction(start => window.scrollY > start + 20, before);
+    assert.equal(await body.evaluate(element => element.scrollTop), 0, 'Mobile has no nested participant scroller');
+    await session.detach();
+  }, { viewport: { width: 390, height: 667 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+
+  await check('desktop panel scrolling chains to the page at its edge', async page => {
+    await open(page);
+    for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();
+    const body = page.locator('#participants-body');
+    assert.equal(await body.evaluate(element => getComputedStyle(element).overscrollBehaviorY), 'auto');
+    await page.evaluate(() => {
+      document.body.style.minHeight = '180vh';
+      const panel = document.querySelector('#participants-body');
+      panel.scrollTop = panel.scrollHeight;
+      window.scrollTo(0, 0);
+    });
+    const box = await body.boundingBox();
+    await page.mouse.move(box.x + 25, box.y + 30);
+    await page.mouse.wheel(0, 450);
+    await page.waitForTimeout(150);
+    await page.mouse.wheel(0, 450);
+    await page.waitForFunction(() => window.scrollY > 0);
+  }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });
+
   await check('CTA explicitly scrolls off-screen inputs on short mobile screens', async page => {
     await open(page);
     const first = page.locator('[data-field="name"]').first();
