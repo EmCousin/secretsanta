@@ -7,6 +7,7 @@ export default {
   'app.unexpected': 'Une erreur est survenue. Réessayez avec un navigateur à jour.',
   'language.label': 'Langue',
   'language.auto': 'Automatique (navigateur)',
+  'language.short': 'FR',
   'nav.skip': 'Aller à l’échange',
   'hero.kicker': 'Cadeaux de Noël',
   'hero.tagline': 'Tirez les noms au sort et envoyez à chacun son invitation privée.',

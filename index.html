@@ -23,19 +23,21 @@
     <div class="garland" aria-hidden="true"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
-      <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
-      <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
-        <span id="language-label" data-i18n="language.label">Language</span>
-        <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">
-          <summary id="language" aria-disabled="true" aria-labelledby="language-label language-current" aria-controls="language-options" data-locale-target="trigger" data-action="keydown.down->locale#focusOptions:prevent keydown.up->locale#focusOptions:prevent"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt="" data-locale-target="currentIcon"><span id="language-current" data-locale-target="current">Automatic (browser)</span></span></summary>
-          <fieldset id="language-options" class="language-options" disabled data-locale-target="choices" data-action="change->locale#change click->locale#choose keydown.enter->locale#commit:prevent">
-            <legend class="sr-only" data-i18n="language.label">Language</legend>
-            <label><input type="radio" name="interface-language" value="" checked data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt=""><span class="language-name" data-i18n="language.auto">Automatic (browser)</span></span></label>
-            <label lang="en"><input type="radio" name="interface-language" value="en" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/en.svg" width="24" height="18" alt=""><span class="language-name">English</span></span></label>
-            <label lang="fr"><input type="radio" name="interface-language" value="fr" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/fr.svg" width="24" height="18" alt=""><span class="language-name">Français</span></span></label>
-            <label lang="pt-BR"><input type="radio" name="interface-language" value="pt-BR" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/pt-BR.svg" width="24" height="18" alt=""><span class="language-name">Português (Brasil)</span></span></label>
-          </fieldset>
-        </details>
+      <div class="topbar-controls">
+        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
+        <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
+          <span id="language-label" class="sr-only" data-i18n="language.label">Language</span>
+          <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">
+            <summary id="language" aria-disabled="true" aria-labelledby="language-label language-current" aria-controls="language-options" data-locale-target="trigger" data-action="keydown.down->locale#focusOptions:prevent keydown.up->locale#focusOptions:prevent"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt="" data-locale-target="currentIcon"><span id="language-current" class="sr-only" data-locale-target="current">Automatic (browser)</span><span aria-hidden="true" data-i18n="language.short">EN</span></span></summary>
+            <fieldset id="language-options" class="language-options" disabled data-locale-target="choices" data-action="change->locale#change click->locale#choose keydown.enter->locale#commit:prevent">
+              <legend class="sr-only" data-i18n="language.label">Language</legend>
+              <label><input type="radio" name="interface-language" value="" checked data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/auto.svg" width="24" height="18" alt=""><span class="language-name" data-i18n="language.auto">Automatic (browser)</span></span></label>
+              <label lang="en"><input type="radio" name="interface-language" value="en" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/en.svg" width="24" height="18" alt=""><span class="language-name">English</span></span></label>
+              <label lang="fr"><input type="radio" name="interface-language" value="fr" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/fr.svg" width="24" height="18" alt=""><span class="language-name">Français</span></span></label>
+              <label lang="pt-BR"><input type="radio" name="interface-language" value="pt-BR" data-locale-target="option"><span class="language-choice"><img class="language-icon" src="./apps/web/art/languages/pt-BR.svg" width="24" height="18" alt=""><span class="language-name">Português (Brasil)</span></span></label>
+            </fieldset>
+          </details>
+        </div>
       </div>
     </div>
     <header class="site-header" data-page-target="welcome">

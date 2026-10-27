@@ -7,6 +7,7 @@ export default {
   'app.unexpected': 'Something went wrong. Please try again in an up-to-date browser.',
   'language.label': 'Language',
   'language.auto': 'Automatic (browser)',
+  'language.short': 'EN',
   'nav.skip': 'Skip to the exchange',
   'hero.kicker': 'Christmas gift exchange',
   'hero.tagline': 'Draw names and send everyone a private invitation.',

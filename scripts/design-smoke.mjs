@@ -34,12 +34,11 @@ async function checkTouchPicker(page, locale, width) {
       return {
         height: box.height, width: box.width,
         fontSize: parseFloat(getComputedStyle(element).fontSize),
-        pickerWidth: element.closest('.language-picker').getBoundingClientRect().width,
         reachable: element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)),
       };
     });
     assert.ok(layout.height >= 48 && layout.fontSize >= 16, 'Touch picker has readable text and a full-size hit area');
-    assert.ok(layout.width >= layout.pickerWidth - 1, 'Picker fills its mobile row instead of using a fixed width');
+    assert.ok(layout.width <= width / 2, 'The closed language control stays compact');
     assert.equal(layout.reachable, true, 'Decoration and neighbouring controls cannot intercept a tap');
     await openLanguageMenu(page, { touch: true });
     await page.waitForFunction(() => {
@@ -48,6 +47,7 @@ async function checkTouchPicker(page, locale, width) {
       return box.left >= 0 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight;
     });
     const panel = page.locator('#language-options');
+    assert.ok((await panel.boundingBox()).width > layout.width, 'Full language choices have room independently of the compact trigger');
     assert.equal(await panel.evaluate(element => element.scrollWidth <= element.clientWidth), true, 'The OPEN options panel has no horizontal overflow');
     await checkPickerAlignment(page);
     if (width === 375 && locale === 'fr' && preference === 'pt-BR') {
@@ -56,6 +56,7 @@ async function checkTouchPicker(page, locale, width) {
     await chooseLanguage(page, preference, { touch: true });
     const expected = new I18n([locale], preference).locale;
     await page.waitForFunction(expected => document.documentElement.lang === expected, expected);
+    assert.equal(await trigger.locator('[data-i18n="language.short"]').textContent(), new I18n([locale], preference).t('language.short'));
     assert.equal(await page.locator(`[data-locale-target="option"][value="${preference}"]`).isChecked(), true);
     assert.equal(await page.locator('[data-locale-target="currentIcon"]').getAttribute('src'), `./apps/web/art/languages/${preference || 'auto'}.svg`, 'The closed picker shows the selected flag or Automatic globe');
     assert.equal(await page.locator('[data-locale-target="menu"]').evaluate(element => element.open), false);

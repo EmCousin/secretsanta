@@ -7,6 +7,7 @@ export default {
   'app.unexpected': 'Algo deu errado. Tente novamente em um navegador atualizado.',
   'language.label': 'Idioma',
   'language.auto': 'Automático (navegador)',
+  'language.short': 'PT-BR',
   'nav.skip': 'Ir para o amigo secreto',
   'hero.kicker': 'Amigo secreto de Natal',
   'hero.tagline': 'Sorteie os nomes e envie um convite privado para cada pessoa.',
