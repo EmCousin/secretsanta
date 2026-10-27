@@ -1,6 +1,6 @@
 # Android Hotwire Native experiment
 
-This is an unverified, online-only first prototype, not a release build. It opens the published site in a Hotwire Native shell; it does not yet register app links or add a native share bridge. Until the matching web change is deployed, the published site does not load Turbo for Hotwire and the prototype cannot be expected to work.
+This is a first prototype, not a release build. The debug APK compiles, but the app has not been run on a device and offline use is unverified. It opens the published site in a Hotwire Native shell; it does not yet register app links or add a native share bridge. Until the matching web change is deployed, the published site does not load Turbo for Hotwire and the prototype cannot be expected to work.
 
 Builds require an Android SDK (API 35), Java 17, Gradle compatible with Android Gradle Plugin 8.13.2, and network access for build dependencies. Install and license those tools separately; no SDK, Gradle wrapper, keystore or signing credentials are included. From this directory, run `gradle :app:assembleDebug` in a properly configured environment. The application ID is provisional and must be chosen before any release or verified App Links setup.
 
