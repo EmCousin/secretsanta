@@ -79,6 +79,20 @@
                 <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
               </div></div>
             </details>
+            <details class="workflow-panel" name="exchange-panels" data-exchange-target="rulesPanel">
+              <summary id="rules-title" aria-controls="rules-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.rules">Rules</span></summary>
+              <div id="rules-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="rules-title"><div class="workflow-content">
+                <p class="help" data-i18n="rules.help">Rules work in one direction. Add another rule for the reverse.</p>
+                <label for="rule-type" data-i18n="rules.type">Rule</label>
+                <select id="rule-type" data-exchange-target="ruleType"><option value="exclude" data-i18n="rules.exclude">Must not draw</option><option value="force" data-i18n="rules.force">Must draw</option></select>
+                <div class="two-columns">
+                  <div><label for="excluded-giver" data-i18n="form.giver">This person</label><select id="excluded-giver" data-exchange-target="giver"><option value="" data-i18n="form.choosePerson">Choose a person</option></select></div>
+                  <div><label for="excluded-recipient" data-i18n="rules.other">The other person</label><select id="excluded-recipient" data-exchange-target="recipient"><option value="" data-i18n="form.choosePerson">Choose a person</option></select></div>
+                </div>
+                <button type="button" data-i18n="rules.add" data-action="exchange#addRule">Add rule</button>
+                <ul class="rules" data-exchange-target="rules"></ul>
+              </div></div>
+            </details>
             <details class="workflow-panel" name="exchange-panels" data-exchange-target="settingsPanel">
               <summary id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></summary>
               <div id="settings-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="settings-title"><div class="workflow-content">
@@ -91,16 +105,6 @@
               <label for="instructions" data-i18n="form.instructions">A note for everyone (optional)</label>
               <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-i18n-placeholder="form.instructionsPlaceholder" data-exchange-target="instructions"></textarea>
               <p class="help" data-i18n="form.snapshots">Details and gift hints are included in the invitations. They won't update after you send them.</p>
-            <details class="optional">
-              <summary data-i18n="form.exclusions">Who shouldn't draw whom?</summary>
-              <p class="help" data-i18n="form.exclusionsHelp">For example, stop partners drawing each other. Each rule works in one direction; add the reverse rule if needed.</p>
-              <div class="two-columns">
-                <div><label for="excluded-giver" data-i18n="form.giver">This person</label><select id="excluded-giver" data-exchange-target="giver"><option value="" data-i18n="form.choosePerson">Choose a person</option></select></div>
-                <div><label for="excluded-recipient" data-i18n="form.recipient">should not draw</label><select id="excluded-recipient" data-exchange-target="recipient"><option value="" data-i18n="form.choosePerson">Choose a person</option></select></div>
-              </div>
-              <button type="button" data-i18n="form.addExclusion" data-action="exchange#addRule">Add exclusion</button>
-              <ul class="rules" data-exchange-target="rules"></ul>
-            </details>
               </div></div>
             </details>
             <details class="workflow-panel" name="exchange-panels" data-exchange-target="linksPanel">

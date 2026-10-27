@@ -216,7 +216,7 @@ try {
     const links = page.locator('#links-title');
     await participants.focus();
     await page.keyboard.press('ArrowDown');
-    assert.equal(await settings.evaluate(element => element === document.activeElement), true);
+    assert.equal(await page.locator('#rules-title').evaluate(element => element === document.activeElement), true);
     await page.keyboard.press('End');
     assert.equal(await links.evaluate(element => element === document.activeElement), true);
     await page.evaluate(() => {
@@ -287,8 +287,7 @@ try {
     assert.equal(await page.locator('[data-field="hint"]').last().inputValue(), 'Keep this hint');
     assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
     await page.locator('[data-field="hint"]').last().fill('');
-    await openPanel(page, 'settings');
-    await page.locator('[data-i18n="form.exclusions"]').click();
+    await openPanel(page, 'rules');
     await page.locator('#excluded-giver').selectOption({ index: 3 });
     await page.locator('#excluded-recipient').selectOption({ index: 1 });
     await page.locator('[data-action="exchange#addRule"]').click();
@@ -339,16 +338,39 @@ try {
   await check('exclusions and impossible constraints have useful errors', async page => {
     await open(page);
     await fillPeople(page, ['Alice', 'Bob']);
-    await openPanel(page, 'settings');
-    await page.getByText("Who shouldn't draw whom?", { exact: true }).click();
+    await openPanel(page, 'rules');
     await page.getByLabel('This person', { exact: true }).selectOption({ label: 'Alice' });
-    await page.getByLabel('should not draw', { exact: true }).selectOption({ label: 'Bob' });
-    await page.getByRole('button', { name: 'Add exclusion', exact: true }).click();
-    await page.getByRole('button', { name: 'Match everyone', exact: true }).click();
+    await page.getByLabel('The other person', { exact: true }).selectOption({ label: 'Bob' });
+    await page.getByRole('button', { name: 'Add rule', exact: true }).click();
     await page.locator('[data-exchange-target="error"]:visible').waitFor();
     assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /no possible draw/);
-    await page.getByRole('button', { name: 'Remove exclusion:', exact: false }).click();
+    assert.equal(await page.locator('.rules li').count(), 0);
     await drawNames(page);
+  });
+
+  await check('forced rules reject conflicts and survive saving and drawing', async page => {
+    await open(page);
+    await fillPeople(page, ['Alice', 'Bob', 'Charlie']);
+    await openPanel(page, 'rules');
+    await page.locator('#rule-type').selectOption('force');
+    await page.locator('#excluded-giver').selectOption({ label: 'Alice' });
+    await page.locator('#excluded-recipient').selectOption({ label: 'Bob' });
+    await page.locator('[data-action="exchange#addRule"]').click();
+    assert.match(await page.locator('.rules').textContent(), /Alice must draw Bob/);
+    await page.locator('#rule-type').selectOption('exclude');
+    await page.locator('[data-action="exchange#addRule"]').click();
+    assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /conflict/);
+    assert.equal(await page.locator('.rules li').count(), 1);
+    await openStorage(page);
+    await page.locator('[data-action="exchange#save"]').click();
+    await page.reload();
+    await openStorage(page);
+    await page.locator('[data-action="exchange#restore"]').click();
+    await openPanel(page, 'rules');
+    assert.match(await page.locator('.rules').textContent(), /Alice must draw Bob/);
+    await drawNames(page);
+    const link = await page.locator('[data-share-target="link"]').first().inputValue();
+    assert.equal(Invitation.fromFragment(new URL(link).hash).recipient, 'Bob');
   });
 
   await check('missing APIs and blocked storage keep usable fallbacks', async (page, context) => {

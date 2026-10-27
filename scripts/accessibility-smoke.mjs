@@ -26,6 +26,8 @@ try {
       await page.locator('[data-field="name"]').nth(0).fill('Alice');
       await page.locator('[data-field="name"]').nth(1).fill('Bob');
       await check(page, `${locale} participants accordion`);
+      await openPanel(page, 'rules');
+      await check(page, `${locale} rules accordion`);
       await openPanel(page, 'settings');
       for (const detail of await page.locator('details.optional').all()) await detail.locator('summary').click();
       await check(page, `${locale} organiser and expanded options`);

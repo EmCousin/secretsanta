@@ -11,6 +11,7 @@ function memoryStorage() {
 const draft = {
   participants: [{ id: 'alice', name: 'Alice', hint: 'Books' }, { id: 'bob', name: 'Bob', hint: 'Coffee' }],
   exclusions: [],
+  forced: [],
   exchange: { name: 'Family', budget: '25 €', date: '2026-12-25', instructions: '' },
 };
 const invitations = [
@@ -26,6 +27,16 @@ test('drafts can be incomplete and saved results restore without a new draw', ()
   const completed = { v: 1, draft, invitations };
   saveCopy(completed, storage);
   assert.deepEqual(restoreCopy(storage), completed);
+});
+
+test('older saved drafts restore and forced rules are checked against invitations', () => {
+  const storage = memoryStorage();
+  const { forced, ...oldDraft } = draft;
+  storage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, draft: oldDraft, invitations }));
+  assert.deepEqual(restoreCopy(storage).draft.forced, []);
+  saveCopy({ v: 1, draft: { ...draft, forced: [{ giverId: 'alice', recipientId: 'bob' }] }, invitations }, storage);
+  assert.equal(restoreCopy(storage).draft.forced.length, 1);
+  assert.throws(() => saveCopy({ v: 1, draft: { ...draft, forced: [{ giverId: 'alice', recipientId: 'alice' }] }, invitations }, storage));
 });
 
 test('deletion only removes this app key and never unrelated origin data', () => {

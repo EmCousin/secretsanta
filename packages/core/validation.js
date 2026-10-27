@@ -83,3 +83,20 @@ export function validateExclusions(value, participants) {
     return { giverId: rule.giverId, recipientId: rule.recipientId };
   });
 }
+
+export function validateForced(value, participants, exclusions = []) {
+  if (!Array.isArray(value) || value.length > LIMITS.participants ** 2) throw new ValidationError('The forced rules are not valid.', 'validation.forced');
+  const ids = new Set(participants.map(person => person.id));
+  const givers = new Set();
+  const recipients = new Set();
+  return value.map(rule => {
+    record(rule, 'Forced rule');
+    if (!ids.has(rule.giverId) || !ids.has(rule.recipientId)) throw new ValidationError('A rule refers to someone no longer in the exchange.', 'validation.missingPerson');
+    if (rule.giverId === rule.recipientId || givers.has(rule.giverId) || recipients.has(rule.recipientId) || exclusions.some(item => item.giverId === rule.giverId && item.recipientId === rule.recipientId)) {
+      throw new ValidationError('These rules conflict. Check forced pairings and exclusions.', 'validation.ruleConflict');
+    }
+    givers.add(rule.giverId);
+    recipients.add(rule.recipientId);
+    return { giverId: rule.giverId, recipientId: rule.recipientId };
+  });
+}

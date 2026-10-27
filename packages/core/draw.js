@@ -1,4 +1,4 @@
-import { validateParticipants, validateExclusions, ValidationError } from './validation.js';
+import { validateParticipants, validateExclusions, validateForced, ValidationError } from './validation.js';
 import { secureRandomInt } from './utils/random.js';
 
 // Randomised bipartite matching. Complete for the supported constraints, O(n^3).
@@ -10,16 +10,17 @@ export class SecretSantaDraw {
   #edges;
   #recipientOwners;
 
-  constructor(participants, exclusions = [], { randomInt = secureRandomInt } = {}) {
+  constructor(participants, exclusions = [], { randomInt = secureRandomInt, forced = [] } = {}) {
     this.#people = validateParticipants(participants);
     const rules = validateExclusions(exclusions, this.#people);
+    const forcedRules = validateForced(forced, this.#people, rules);
     if (typeof randomInt !== 'function') throw new TypeError('A random integer source is required.');
     this.#randomInt = randomInt;
 
     const blocked = new Map(this.#people.map(person => [person.id, new Set([person.id])]));
     for (const rule of rules) blocked.get(rule.giverId).add(rule.recipientId);
     this.#candidates = new Map(this.#people.map(giver => [giver.id,
-      this.#people.filter(recipient => !blocked.get(giver.id).has(recipient.id)).map(person => person.id),
+      this.#people.filter(recipient => !blocked.get(giver.id).has(recipient.id) && (!forcedRules.some(rule => rule.giverId === giver.id) || forcedRules.some(rule => rule.giverId === giver.id && rule.recipientId === recipient.id))).map(person => person.id),
     ]));
   }
 
