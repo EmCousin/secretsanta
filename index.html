@@ -22,17 +22,15 @@
     <div class="garland" aria-hidden="true"><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span><span class="ambient-motion"></span></div>
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
-      <div class="topbar-controls">
-        <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
-        <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
-          <label for="language" data-i18n="language.label">Language</label>
-          <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
-            <option value="" data-i18n="language.auto">Automatic (browser)</option>
-            <option value="en" lang="en">English</option>
-            <option value="fr" lang="fr">Français</option>
-            <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
-          </select>
-        </div>
+      <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
+      <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
+        <label for="language" data-i18n="language.label">Language</label>
+        <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
+          <option value="" data-i18n="language.auto">Automatic (browser)</option>
+          <option value="en" lang="en">English</option>
+          <option value="fr" lang="fr">Français</option>
+          <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
+        </select>
       </div>
     </div>
     <header class="site-header">

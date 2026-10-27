@@ -71,7 +71,7 @@ Manual follow-ups: first-install failure UI, actual OS installation menus, iOS s
 BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/design-smoke.mjs
 ```
 
-13 scenarios pass: every combination of en/fr/pt-BR with 320/390/768/1440px layouts, plus system reduced motion. They cover overflow, pause persistence, translated motion controls, and ordinary reveal behaviour. The script saves full-page screenshots in `/tmp/opencode` by default; `SCREENSHOT_DIR` selects another existing directory. Selected review snapshots are in `docs/screenshots`.
+16 scenarios pass: every combination of en/fr/pt-BR with 320/375/390/768/1440px layouts, plus system reduced motion. They cover overflow, pause persistence, translated motion controls, and ordinary reveal behaviour. Mobile cases use touch emulation, including the reported 375 × 667px viewport. The script saves full-page screenshots in `/tmp/opencode` by default; `SCREENSHOT_DIR` selects another existing directory. Selected review snapshots are in `docs/screenshots`.
 
 For the optional accessibility checks, add only external tooling:
 
@@ -83,3 +83,5 @@ BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-brow
 15 axe WCAG A/AA scenarios pass: 5 UI states in each language, including expanded form options, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Keyboard/screen-reader review and physical devices remain required manual follow-ups. The 35 Node tests, 12 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
 
 The copy/motion follow-up adds an English HTML/catalogue synchronisation check. The design scenarios verify that the sleigh, smoke, windows, star, and snowflakes really have running animation timelines; pausing stops every ambient timeline, including its clock. They also test live reduced-motion changes and verify that paused/reduced entry effects never leave invitation cards hidden. Updated desktop/mobile screenshots were inspected, and the added illustration layers are included in the offline coverage check.
+
+The mobile-picker follow-up checks 16px text, a 48px minimum hit area, full-row fluid sizing, and centre-point hit testing. At each touch width it opens the native picker with a real tap, commits Automatic/English/French/Portuguese using native arrow/Enter navigation, and checks both selected value and translated document language. It does not use `selectOption()` for this interaction regression. Actual Safari/iOS selection and zoom still require a physical-device check.
