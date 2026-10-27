@@ -18,7 +18,7 @@ class MainActivity : HotwireActivity() {
     override fun navigatorConfigurations() = listOf(
         NavigatorConfiguration(
             name = "main",
-            startLocation = "https://secret-santa-drawer.com/",
+            startLocation = BuildConfig.START_URL,
             navigatorHostId = R.id.main_nav_host
         )
     )

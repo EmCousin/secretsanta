@@ -2,7 +2,7 @@
 
 ## Hotwire Native experiment
 
-- [ ] Check online launch on a real device. `apps/android` debug APK compiled successfully on Linux with Android SDK 35, Java 17 and Gradle 8.13; the native shell has not yet been run.
+- [ ] Check online launch on a real device. `apps/android` debug APK compiled successfully on Linux with Android SDK 35, Java 17 and Gradle 8.13. An Android 15 emulator loaded the localhost preview and completed a two-person draw; after the preview connection was removed, a cold launch and another draw also succeeded. This does not verify offline behavior for the production HTTPS origin or actual devices.
 - [ ] Verify offline launch after an online visit, explicit save/restore and storage isolation from the browser. Test fragment invitations, sharing, external links and process restart without logging private data.
 - [ ] Test iOS separately on a Mac and device. Neither native platform currently has verified App Links, a native share bridge, or store-ready packaging.
 - Automated Chromium tests simulate the Hotwire user agent, not a native WebView. They check that local Turbo loads, the draw and fragment reveal work, and the prepared web app reloads offline. They do not prove native compatibility.
