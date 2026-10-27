@@ -1,4 +1,4 @@
-import { LIMITS, record, text, validateParticipants, validateExclusions, validateExchange, ValidationError } from '../../packages/core/validation.js';
+import { LIMITS, record, text, validateParticipants, validateExclusions, validateForced, validateExchange, ValidationError } from '../../packages/core/validation.js';
 import { Invitation } from '../../packages/core/invitations.js';
 
 export const STORAGE_KEY = 'secretsanta.saved.v1';
@@ -20,6 +20,7 @@ export function validateSaved(value) {
   const name = text(draft.exchange.name, 'Exchange name', LIMITS.title);
   const exchange = { ...validateExchange({ ...draft.exchange, name: name || 'Secret Santa' }), name };
   const exclusions = validateExclusions(draft.exclusions, participants);
+  const forced = validateForced(draft.forced ?? [], participants, exclusions);
   let invitations = null;
   if (value.invitations !== null) {
     validateParticipants(participants);
@@ -32,7 +33,7 @@ export function validateSaved(value) {
       const person = participants.find(person => person.id === item.giverId);
       const payload = Invitation.fromFragment(item.fragment);
       const recipient = participants.find(person => person.name === payload.recipient);
-      if (!person || person.name !== payload.giver || !recipient || recipient.id === person.id || givers.has(person.id) || recipients.has(recipient.id) || exclusions.some(rule => rule.giverId === person.id && rule.recipientId === recipient.id)) {
+      if (!person || person.name !== payload.giver || !recipient || recipient.id === person.id || givers.has(person.id) || recipients.has(recipient.id) || exclusions.some(rule => rule.giverId === person.id && rule.recipientId === recipient.id) || forced.some(rule => rule.giverId === person.id && rule.recipientId !== recipient.id)) {
         throw new ValidationError('The saved invitations do not match this exchange.', 'saved.mismatch');
       }
       if (JSON.stringify(payload.exchange) !== JSON.stringify(exchange) || payload.hint !== recipient.hint) throw new ValidationError('The saved invitation details do not match this exchange.', 'saved.details');
@@ -41,7 +42,7 @@ export function validateSaved(value) {
       return { giverId: person.id, fragment: item.fragment };
     });
   }
-  return { v: 1, draft: { participants, exchange, exclusions }, invitations };
+  return { v: 1, draft: { participants, exchange, exclusions, forced }, invitations };
 }
 
 export function saveCopy(value, storage = localStorage) {

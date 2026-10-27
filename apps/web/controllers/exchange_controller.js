@@ -7,14 +7,15 @@ import { i18n } from '../localization.js';
 import { SectionAccordion } from '../section-accordion.js';
 
 export default class extends Controller {
-  static targets = ['controls', 'storageButton', 'form', 'participantsPanel', 'settingsPanel', 'linksPanel', 'emptyResults', 'matchActions', 'matchButton', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
+  static targets = ['controls', 'storageButton', 'form', 'participantsPanel', 'rulesPanel', 'settingsPanel', 'linksPanel', 'emptyResults', 'matchActions', 'matchButton', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'ruleType', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
 
   connect() {
     this.exclusions = [];
+    this.forced = [];
     this.invitations = null;
     this.addPerson();
     this.addPerson();
-    this.accordion = new SectionAccordion(this.controlsTarget, [this.participantsPanelTarget, this.settingsPanelTarget, this.linksPanelTarget]);
+    this.accordion = new SectionAccordion(this.controlsTarget, [this.participantsPanelTarget, this.rulesPanelTarget, this.settingsPanelTarget, this.linksPanelTarget]);
     this.controlsTarget.disabled = false;
     this.storageButtonTargets.forEach(button => { button.disabled = false; });
     this.dispatch('ready');
@@ -45,7 +46,7 @@ export default class extends Controller {
   }
 
   setEditing(enabled) {
-    for (const panel of [this.participantsPanelTarget, this.settingsPanelTarget]) {
+    for (const panel of [this.participantsPanelTarget, this.rulesPanelTarget, this.settingsPanelTarget]) {
       for (const input of panel.querySelectorAll('input, textarea, select, button')) input.disabled = !enabled;
     }
     this.matchActionsTarget.hidden = !enabled;
@@ -71,6 +72,7 @@ export default class extends Controller {
     const row = event.currentTarget.closest('[data-person-id]');
     const neighbour = row.nextElementSibling || row.previousElementSibling;
     this.exclusions = this.exclusions.filter(rule => rule.giverId !== row.dataset.personId && rule.recipientId !== row.dataset.personId);
+    this.forced = this.forced.filter(rule => rule.giverId !== row.dataset.personId && rule.recipientId !== row.dataset.personId);
     row.remove();
     this.updatePeople();
     (neighbour?.querySelector('input') || this.addButtonTarget).focus();
@@ -104,7 +106,7 @@ export default class extends Controller {
     while (this.peopleTarget.children.length > 2) {
       const row = this.peopleTarget.lastElementChild;
       if (row.querySelector('[data-field="name"]').value.trim() || row.querySelector('[data-field="hint"]').value.trim()
-        || this.exclusions.some(rule => rule.giverId === row.dataset.personId || rule.recipientId === row.dataset.personId)) break;
+        || [...this.exclusions, ...this.forced].some(rule => rule.giverId === row.dataset.personId || rule.recipientId === row.dataset.personId)) break;
       row.remove();
     }
     this.updatePeople();
@@ -138,8 +140,15 @@ export default class extends Controller {
     const recipientId = this.recipientTarget.value;
     if (!giverId || !recipientId) return this.fail('people.chooseBoth');
     if (giverId === recipientId) return this.fail('people.self');
-    if (this.exclusions.some(rule => rule.giverId === giverId && rule.recipientId === recipientId)) return this.fail('validation.duplicateRule');
-    this.exclusions.push({ giverId, recipientId });
+    const list = this.ruleTypeTarget.value === 'force' ? this.forced : this.exclusions;
+    if (list.some(rule => rule.giverId === giverId && rule.recipientId === recipientId)) return this.fail('validation.duplicateRule');
+    const exclusions = this.ruleTypeTarget.value === 'exclude' ? [...this.exclusions, { giverId, recipientId }] : this.exclusions;
+    const forced = this.ruleTypeTarget.value === 'force' ? [...this.forced, { giverId, recipientId }] : this.forced;
+    try {
+      const people = this.readPeople().map((person, index) => ({ ...person, name: `Person ${index + 1}` }));
+      new SecretSantaDraw(people, exclusions, { forced }).generate();
+    } catch (error) { return this.fail(error); }
+    list.push({ giverId, recipientId });
     this.errorTarget.hidden = true;
     this.renderRules();
     this.say('status.exclusionAdded');
@@ -148,9 +157,9 @@ export default class extends Controller {
   renderRules() {
     const people = this.readPeople();
     this.rulesTarget.replaceChildren();
-    for (const [index, rule] of this.exclusions.entries()) {
+    for (const [index, rule] of [...this.exclusions.map(rule => ({ ...rule, type: 'exclude' })), ...this.forced.map(rule => ({ ...rule, type: 'force' }))].entries()) {
       const row = this.ruleTemplateTarget.content.firstElementChild.cloneNode(true);
-      const label = i18n.t('people.exclusion', {
+      const label = i18n.t(rule.type === 'force' ? 'rules.forcedLabel' : 'people.exclusion', {
         giver: people.find(person => person.id === rule.giverId)?.name.trim() || i18n.t('people.unnamed'),
         recipient: people.find(person => person.id === rule.recipientId)?.name.trim() || i18n.t('people.unnamed'),
       });
@@ -163,7 +172,9 @@ export default class extends Controller {
   }
 
   removeRule(event) {
-    this.exclusions.splice(event.params.index, 1);
+    const index = event.params.index;
+    if (index < this.exclusions.length) this.exclusions.splice(index, 1);
+    else this.forced.splice(index - this.exclusions.length, 1);
     this.renderRules();
     this.giverTarget.focus();
     this.say('status.exclusionRemoved');
@@ -173,6 +184,7 @@ export default class extends Controller {
     return {
       participants: this.readPeople(),
       exclusions: this.exclusions,
+      forced: this.forced,
       exchange: { name: this.nameTarget.value, budget: this.budgetTarget.value, date: this.dateTarget.value, instructions: this.instructionsTarget.value },
     };
   }
@@ -185,7 +197,7 @@ export default class extends Controller {
       const draft = this.draft();
       const participants = validateParticipants(draft.participants);
       const exchange = validateExchange(draft.exchange);
-      const draw = new SecretSantaDraw(participants, draft.exclusions);
+      const draw = new SecretSantaDraw(participants, draft.exclusions, { forced: draft.forced });
       const assignments = draw.generate();
       const people = new Map(participants.map(person => [person.id, person]));
       this.invitations = assignments.map(({ giverId, recipientId }) => {
@@ -234,7 +246,7 @@ export default class extends Controller {
     this.setEditing(true);
     this.say('status.edited');
     const panel = this.editPanel || this.participantsPanelTarget;
-    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.nameTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
+    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.nameTarget : panel === this.rulesPanelTarget ? this.ruleTypeTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
   }
 
   save() {
@@ -250,8 +262,10 @@ export default class extends Controller {
       if (!saved) return this.say('storage.missing');
       this.peopleTarget.replaceChildren();
       this.exclusions = [];
+      this.forced = [];
       for (const person of saved.draft.participants) this.addPerson(null, person);
       this.exclusions = saved.draft.exclusions;
+      this.forced = saved.draft.forced;
       for (const key of ['name', 'budget', 'date', 'instructions']) this[`${key}Target`].value = saved.draft.exchange[key];
       this.updatePeople();
       this.invitations = saved.invitations;

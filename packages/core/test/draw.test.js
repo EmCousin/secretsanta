@@ -24,6 +24,48 @@ test('two people draw each other and inputs are unchanged', () => {
   assert.deepEqual(input, people.slice(0, 2));
 });
 
+test('forced directed rules are respected and conflicting or impossible rules fail', () => {
+  const forced = [{ giverId: 'p0', recipientId: 'p1' }];
+  for (let i = 0; i < 30; i++) {
+    const result = new SecretSantaDraw(people, [], { forced }).generate();
+    valid(result, people);
+    assert.equal(result.find(pair => pair.giverId === 'p0').recipientId, 'p1');
+  }
+  for (const rules of [
+    [...forced, { giverId: 'p0', recipientId: 'p2' }],
+    [...forced, { giverId: 'p2', recipientId: 'p1' }],
+    [{ giverId: 'p0', recipientId: 'p0' }],
+  ]) assert.throws(() => new SecretSantaDraw(people, [], { forced: rules }), error => error.code === 'validation.ruleConflict');
+  assert.throws(() => new SecretSantaDraw(people, forced, { forced }), error => error.code === 'validation.ruleConflict');
+  assert.throws(() => new SecretSantaDraw(people.slice(0, 3), [{ giverId: 'p1', recipientId: 'p2' }], { forced }).generate(), error => error.code === 'validation.impossible');
+});
+
+test('forced and excluded rules agree with exhaustive three-person matching', () => {
+  const group = people.slice(0, 3);
+  const edges = group.flatMap(giver => group.filter(recipient => giver.id !== recipient.id).map(recipient => ({ giverId: giver.id, recipientId: recipient.id })));
+  const permutations = [[1, 2, 0], [2, 0, 1]];
+  for (let forcedMask = 0; forcedMask < 64; forcedMask++) {
+    const forced = edges.filter((_, i) => forcedMask & (1 << i));
+    for (let excludedMask = 0; excludedMask < 64; excludedMask++) {
+      const excluded = edges.filter((_, i) => excludedMask & (1 << i));
+      const possible = permutations.some(permutation => {
+        const assignment = group.map((giver, i) => ({ giverId: giver.id, recipientId: group[permutation[i]].id }));
+        return forced.every(rule => assignment.some(pair => pair.giverId === rule.giverId && pair.recipientId === rule.recipientId))
+          && excluded.every(rule => !assignment.some(pair => pair.giverId === rule.giverId && pair.recipientId === rule.recipientId));
+      });
+      let result;
+      try { result = new SecretSantaDraw(group, excluded, { forced, randomInt: first }).generate(); } catch (error) {
+        assert.ok(['validation.ruleConflict', 'validation.impossible', 'validation.forced'].includes(error.code));
+      }
+      assert.equal(Boolean(result), possible, `forced=${forcedMask}, excluded=${excludedMask}`);
+      if (result) {
+        valid(result, group, excluded);
+        assert.ok(forced.every(rule => result.some(pair => pair.giverId === rule.giverId && pair.recipientId === rule.recipientId)));
+      }
+    }
+  }
+});
+
 test('draws respect directed exclusions, including at the participant limit', () => {
   const large = Array.from({ length: 50 }, (_, i) => ({ id: `p${i}`, name: `Person ${i}` }));
   const rules = [{ giverId: 'p0', recipientId: 'p1' }, { giverId: 'p1', recipientId: 'p0' }];
