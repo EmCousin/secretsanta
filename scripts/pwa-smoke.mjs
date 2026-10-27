@@ -123,11 +123,11 @@ try {
       console.log(`PASS ${prefix} worker update waits for consent and preserves unrelated caches`);
 
       await openPanel(page, 'settings');
-      await page.locator('#exchange-name').fill('Keep my unfinished draft');
+      await page.locator('#instructions').fill('Keep my unfinished draft');
       release++;
       failInstall = true;
       assert.equal(await update(page), 'redundant');
-      assert.equal(await page.locator('#exchange-name').inputValue(), 'Keep my unfinished draft');
+      assert.equal(await page.locator('#instructions').inputValue(), 'Keep my unfinished draft');
       assert.equal(await page.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration()).waiting)), false);
       assert.equal(await page.evaluate(async () => (await caches.keys()).filter(name => name.startsWith('secretsanta-shell:')).length), 1);
       await context.setOffline(true);
