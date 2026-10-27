@@ -58,7 +58,7 @@ try {
         const box = element.getBoundingClientRect();
         return box.top >= 0 && box.bottom <= innerHeight;
       }), true, 'Start is visible on the first mobile screen');
-      assert.equal(await page.locator('#exchange-name, #budget').count(), 0, 'Exchange name and budget are not requested');
+      assert.equal(await page.locator('#exchange-name, #budget, #date').count(), 0, 'Exchange name, budget and date are not requested');
       assert.equal(await page.locator('.storage-panel').isVisible(), false, 'Saving is tucked into Links to share');
       const originalUrl = page.url();
       await start.click();
@@ -291,7 +291,6 @@ try {
     await open(page);
     await fillPeople(page);
     await openPanel(page, 'settings');
-    await page.getByLabel('Exchange date', { exact: false }).fill('2026-12-25');
     await drawNames(page);
     assert.equal(await page.locator('[data-share-target="link"]').count(), 3);
     assert.equal(await page.evaluate(() => localStorage.length), 0, 'No automatic saving');
@@ -369,7 +368,7 @@ try {
       v: 1,
       draft: {
         participants: [{ id: 'alice', name: 'Alice', hint: '' }, { id: 'bob', name: 'Bob', hint: '' }],
-        exclusions: [], exchange: { name: 'Family Christmas', budget: '25 €', date: '', instructions: '' },
+        exclusions: [], exchange: { name: 'Family Christmas', budget: '25 €', date: '2026-12-25', instructions: '' },
       },
       invitations: null,
     })));
@@ -380,10 +379,12 @@ try {
     const invitation = Invitation.fromFragment(new URL(link).hash);
     assert.equal(invitation.exchange.name, 'Family Christmas');
     assert.equal(invitation.exchange.budget, '25 €');
+    assert.equal(invitation.exchange.date, '2026-12-25');
     await page.goto(link);
     await page.locator('[data-invitation-target="reveal"]').click();
     assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Family Christmas');
     assert.match(await page.locator('[data-invitation-target="budget"]').textContent(), /25 €/);
+    assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /2026/);
   });
 
   await check('missing APIs and blocked storage keep usable fallbacks', async (page, context) => {
@@ -498,12 +499,12 @@ try {
     await page.locator('[data-field="name"]').nth(0).fill('Maël');
     await page.locator('[data-field="name"]').nth(1).fill('João');
     await openPanel(page, 'settings');
-    await page.locator('#date').fill('2026-12-25');
+    await page.locator('#instructions').fill('A note for everyone');
     await page.locator('button[type="submit"]').click();
     const link = await page.locator('[data-share-target="link"]').first().inputValue();
     await chooseLanguage(page, 'en');
     assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), link);
-    assert.equal(await page.locator('#date').inputValue(), '2026-12-25');
+    assert.equal(await page.locator('#instructions').inputValue(), 'A note for everyone');
     assert.match(await page.locator('.invitation-card h3').first().textContent(), /Invitation for Maël/);
     await page.goto(link);
     await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
@@ -511,11 +512,11 @@ try {
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '');
     await page.locator('[data-invitation-target="reveal"]').click();
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
-    assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 de dezembro de 2026/);
+    assert.equal(await page.locator('[data-invitation-target="instructions"]').textContent(), 'A note for everyone');
     await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
     assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Secret Santa');
-    assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 décembre 2026/);
+    assert.equal(await page.locator('[data-invitation-target="date"]').textContent(), '');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   }, { locale: 'pt-BR', viewport: { width: 320, height: 740 } });
 

@@ -35,7 +35,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] In Rules, add and remove both kinds of directed rule. Check direct contradictions and an impossible combination show an actionable error without adding the rule. Save and restore a draft, draw, and check a forced invitation. Verify editing a completed draw still requires confirmation.
 - [ ] Check festive headings/buttons and French/Portuguese accents, online and offline. Form entries must stay easy to read, and the app must remain usable with a serif fallback if its local font is blocked.
 - [ ] Enter advances name entry, never draws; verify mobile Next keyboards and East Asian IME confirmation. Remove a middle/last/all participant and check focus. An unused trailing row can be ignored on Draw, but a row with a hint or exclusion must be kept.
-- [ ] Confirm Settings has no exchange-name or budget inputs. Restore a pre-existing saved exchange with both values and verify its invitations still display them after reveal.
+- [ ] Confirm Settings has no exchange-name, budget or date inputs. Restore a pre-existing saved exchange with these values and verify its invitations still display them after reveal.
 - [ ] Open an invitation in a fresh mobile tab. The organiser hero is absent and the reveal action is easy to reach. Check malformed links, language changes, reload before/after reveal, and back/forward fragment navigation without stale revealed text.
 - [ ] Use keyboard only. Check tab order, visible focus, native details, inline errors, redraw dialog, and focus after results/reveal. Ensure you can return from the dialog with Escape.
 - [ ] Use a screen reader to check labels, status/error announcements, and absence of recipient details before reveal.

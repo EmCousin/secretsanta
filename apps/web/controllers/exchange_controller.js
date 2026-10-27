@@ -7,14 +7,14 @@ import { i18n } from '../localization.js';
 import { SectionAccordion } from '../section-accordion.js';
 
 export default class extends Controller {
-  static targets = ['controls', 'storageButton', 'form', 'participantsPanel', 'rulesPanel', 'settingsPanel', 'linksPanel', 'emptyResults', 'matchActions', 'matchButton', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'ruleType', 'giver', 'recipient', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
+  static targets = ['controls', 'storageButton', 'form', 'participantsPanel', 'rulesPanel', 'settingsPanel', 'linksPanel', 'emptyResults', 'matchActions', 'matchButton', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'ruleType', 'giver', 'recipient', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
 
   connect() {
     this.exclusions = [];
     this.forced = [];
     this.invitations = null;
     // Preserve legacy saved values, but new exchanges need no extra inputs.
-    this.legacyExchange = { name: 'Secret Santa', budget: '' };
+    this.legacyExchange = { name: 'Secret Santa', budget: '', date: '' };
     this.addPerson();
     this.addPerson();
     this.accordion = new SectionAccordion(this.controlsTarget, [this.participantsPanelTarget, this.rulesPanelTarget, this.settingsPanelTarget, this.linksPanelTarget]);
@@ -187,7 +187,7 @@ export default class extends Controller {
       participants: this.readPeople(),
       exclusions: this.exclusions,
       forced: this.forced,
-      exchange: { ...this.legacyExchange, date: this.dateTarget.value, instructions: this.instructionsTarget.value },
+      exchange: { ...this.legacyExchange, instructions: this.instructionsTarget.value },
     };
   }
 
@@ -248,7 +248,7 @@ export default class extends Controller {
     this.setEditing(true);
     this.say('status.edited');
     const panel = this.editPanel || this.participantsPanelTarget;
-    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.dateTarget : panel === this.rulesPanelTarget ? this.ruleTypeTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
+    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.instructionsTarget : panel === this.rulesPanelTarget ? this.ruleTypeTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
   }
 
   save() {
@@ -268,8 +268,8 @@ export default class extends Controller {
       for (const person of saved.draft.participants) this.addPerson(null, person);
       this.exclusions = saved.draft.exclusions;
       this.forced = saved.draft.forced;
-      this.legacyExchange = { name: saved.draft.exchange.name || 'Secret Santa', budget: saved.draft.exchange.budget };
-      for (const key of ['date', 'instructions']) this[`${key}Target`].value = saved.draft.exchange[key];
+      this.legacyExchange = { name: saved.draft.exchange.name || 'Secret Santa', budget: saved.draft.exchange.budget, date: saved.draft.exchange.date };
+      this.instructionsTarget.value = saved.draft.exchange.instructions;
       this.updatePeople();
       this.invitations = saved.invitations;
       this.errorTarget.hidden = true;
