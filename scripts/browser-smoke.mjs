@@ -233,6 +233,19 @@ try {
     assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => element.getAnimations().length === 0)), true);
   }, { viewport: { width: 1366, height: 768 } });
 
+  await check('section movement uses a short CSS transition', async page => {
+    await open(page);
+    await page.locator('#settings-title').click();
+    const transition = await page.locator('#settings-body').evaluate(element => ({
+      duration: getComputedStyle(element).transitionDuration,
+      animations: element.getAnimations().map(animation => animation.transitionProperty),
+    }));
+    assert.equal(transition.duration, '0.12s');
+    assert.ok(transition.animations.includes('height'));
+    await openPanel(page, 'settings');
+    assert.equal(await page.locator('#settings-body').evaluate(element => element.style.overflow), '', 'Scrolling is restored after the transition');
+  }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
+
   await check('mobile swipes over the beige workspace scroll the page', async page => {
     await open(page);
     for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();

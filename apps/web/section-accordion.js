@@ -57,22 +57,33 @@ export class SectionAccordion {
       if (!panel.open) continue;
       const from = heights.get(panel);
       const to = opening ? this.height(panel) : 0;
-      if (!animate || this.reduced.matches || typeof body.animate !== 'function' || from === to) {
+      body.classList.remove('is-transitioning');
+      if (!animate || this.reduced.matches || from === to) {
         panel.open = opening;
         body.style.height = opening && this.contained.matches ? `${to}px` : '';
         body.style.overflow = '';
         continue;
       }
-      body.style.height = `${to}px`;
+      body.style.height = `${from}px`;
       body.style.overflow = 'hidden';
-      const animation = body.animate([{ height: `${from}px` }, { height: `${to}px` }], {
-        duration: 220, easing: 'cubic-bezier(.2,.7,.25,1)',
-      });
+      // Establish the starting height before applying the CSS transition.
+      void body.offsetHeight;
+      body.classList.add('is-transitioning');
+      body.style.height = `${to}px`;
+      const animation = body.getAnimations?.().find(item => item.transitionProperty === 'height');
+      if (!animation) {
+        panel.open = opening;
+        body.classList.remove('is-transitioning');
+        body.style.overflow = '';
+        body.style.height = opening && this.contained.matches ? `${this.height(panel)}px` : '';
+        continue;
+      }
       this.animations.set(panel, animation);
       pending.push(animation.finished.then(() => {
         if (this.animations.get(panel) !== animation) return;
         this.animations.delete(panel);
         panel.open = opening;
+        body.classList.remove('is-transitioning');
         body.style.overflow = '';
         body.style.height = opening && this.contained.matches ? `${this.height(panel)}px` : '';
       }).catch(() => { /* A newer selection or system preference replaces this animation. */ }));
