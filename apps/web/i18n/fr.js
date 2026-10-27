@@ -144,7 +144,6 @@ export default {
   'design.noAccounts': 'Pas besoin de compte',
   'design.offline': 'Hors connexion après préparation',
   'design.private': 'Liens à envoyer en privé',
-  'design.nativity': 'Sous l’étoile de Bethléem',
   'design.workshop': 'Le tirage de Noël',
   'design.steps': 'Comment ça marche',
   'design.stepPeople': 'Ajoutez les noms',

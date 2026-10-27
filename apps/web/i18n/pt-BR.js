@@ -144,7 +144,6 @@ export default {
   'design.noAccounts': 'Não precisa de conta',
   'design.offline': 'Funciona offline após preparar',
   'design.private': 'Envie os links em particular',
-  'design.nativity': 'Sob a estrela de Belém',
   'design.workshop': 'O sorteio de Natal',
   'design.steps': 'Como funciona',
   'design.stepPeople': 'Adicione os nomes',

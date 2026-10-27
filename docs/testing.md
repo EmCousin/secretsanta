@@ -27,6 +27,7 @@ The script checks a 320px layout, drawing, exclusions, explicit reveal, local sa
 Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Edge before calling those platforms verified. Do not mark a browser tested based on Chromium automation alone.
 
 - [ ] Complete a draw on a narrow phone and desktop, including exclusions and optional gift hints.
+- [ ] The welcome artwork has no caption in any language; the house, Nativity, and star remain visible.
 - [ ] On the first mobile screen, use Start a draw to reach the first name. With existing results, verify it returns to those results without redrawing or changing links.
 - [ ] Enter advances name entry, never draws; verify mobile Next keyboards and East Asian IME confirmation. Remove a middle/last/all participant and check focus. An unused trailing row can be ignored on Draw, but a row with a hint or exclusion must be kept.
 - [ ] Clear the optional exchange name, close its details, and draw. Native validation should reopen the section and focus the field.

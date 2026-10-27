@@ -144,7 +144,6 @@ export default {
   'design.noAccounts': 'No account needed',
   'design.offline': 'Works offline after setup',
   'design.private': 'Send links privately',
-  'design.nativity': 'Under the Star of Bethlehem',
   'design.workshop': 'The Christmas draw',
   'design.steps': 'How it works',
   'design.stepPeople': 'Add names',
