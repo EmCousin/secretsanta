@@ -42,7 +42,7 @@ Invitation links hide the organiser welcome and open on a compact, personalised 
 
 The welcome and existing house illustration sit beside the form at desktop widths (960px and above), taking layout inspiration from the reference app without copying its artwork or code. The starter form and compact footer fit at 1366 × 768px and 1440 × 900px in all 3 languages. The action reads “Match everyone” in English, with natural French and Portuguese equivalents. The solver still generates directed giver-to-recipient assignments, not necessarily reciprocal pairs.
 
-Both columns are top-aligned. Expanding a hint or settings grows the form downward without recentering the welcome column. Stable root scrollbar space avoids sideways jumps when page scrolling becomes necessary. There are no maximum heights or nested scrolling areas on the form, participant list, or expanded hints. Larger groups, open settings, short screens, and enlarged text use normal document scrolling. Mobile uses a compact welcome with a small illustration above the form. Offline/install/privacy utilities remain available in a quieter footer.
+Both columns are top-aligned. Participants, settings and links are mutually exclusive sections with a short animated transition, disabled when the system requests reduced motion. The active section scrolls internally for long content; on sufficiently large desktop viewports the workspace fits the viewport. Short screens, enlarged text and mobile can also use normal document scrolling. Hints grow within the participant section without their own nested scroll area. Mobile uses a compact welcome with a small illustration above the form. Offline/install/privacy utilities remain available in a quieter footer.
 
 ## Festive typography
 
@@ -56,7 +56,7 @@ Berkshire Swash adds calligraphic Christmas character to headings, the wordmark,
 - [Compact mobile name entry](screenshots/name-entry.webp)
 - [Participant invitation, 375 × 667px](screenshots/invitation.webp)
 - [Starter desktop workspace, 1366 × 768px](screenshots/workspace.webp)
-- [Expanded hints without capped scrolling or recentering](screenshots/expanded.webp)
+- [Expanded hints in the participant section](screenshots/expanded.webp)
 
 Screenshot tooling temporarily freezes effects for organiser and participant captures; the app itself keeps automatic motion. The open-picker snapshot keeps effects running. Names in the participant snapshot are test fixtures. These review assets are not precached.
 

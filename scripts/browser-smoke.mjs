@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { Invitation } from '../packages/core/invitations.js';
 import { I18n } from '../apps/web/i18n/index.js';
-import { chooseLanguage } from './browser-helpers.mjs';
+import { chooseLanguage, openPanel, openStorage } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, headless: true });
@@ -44,6 +44,7 @@ async function fillPeople(page, names = ['Alice', 'Bob', 'Charlie']) {
 async function drawNames(page) {
   await page.getByRole('button', { name: 'Match everyone', exact: true }).click();
   await page.locator('[data-exchange-target="results"]:visible').waitFor();
+  await openPanel(page, 'links');
 }
 
 try {
@@ -58,8 +59,7 @@ try {
         return box.top >= 0 && box.bottom <= innerHeight;
       }), true, 'Start is visible on the first mobile screen');
       assert.equal(await page.locator('#exchange-name').isVisible(), false, 'Prefilled exchange name stays in optional details');
-      assert.equal(await page.locator('.storage-panel').evaluate(element =>
-        element.getBoundingClientRect().top > document.querySelector('button[type="submit"]').getBoundingClientRect().bottom), true);
+      assert.equal(await page.locator('.storage-panel').isVisible(), false, 'Saving is tucked into Links to share');
       const originalUrl = page.url();
       await start.click();
       assert.equal(page.url(), originalUrl, 'Start does not replace fragments or navigate');
@@ -96,7 +96,8 @@ try {
       assert.equal(await names.count(), 2, 'Draw ignores an unused trailing row');
       const links = await page.locator('[data-share-target="link"]').evaluateAll(elements => elements.map(element => element.value));
       assert.equal(links.length, 2);
-      assert.equal(await page.locator('[data-exchange-target="setupHeading"]').isVisible(), false);
+      await openPanel(page, 'links');
+      assert.equal(await page.locator('[data-exchange-target="participantsPanel"]').evaluate(element => element.open), false);
       await start.click();
       assert.deepEqual(await page.locator('[data-share-target="link"]').evaluateAll(elements => elements.map(element => element.value)), links, 'Start does not reset an existing draw');
       assert.equal(await page.locator('#results-title').evaluate(element => element === document.activeElement), true);
@@ -142,7 +143,7 @@ try {
           return workspace.left > welcome.right && workspace.top < welcome.bottom;
         }), true, 'Welcome and workspace sit side by side');
         assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Default desktop page fits its viewport');
-        assert.equal(await page.locator('main').evaluate(element => element.scrollHeight <= element.clientHeight + 1), true, 'Starter form does not need internal scrolling either');
+        assert.equal(await page.locator('main').evaluate(element => element.scrollHeight <= element.clientHeight + 1), true, 'The workspace itself does not overflow');
         assert.equal(await page.locator('button[type="submit"]').evaluate(element => element.getBoundingClientRect().bottom <= innerHeight), true);
         const positions = () => page.locator('.site-header, main').evaluateAll(elements => elements.map(element => {
           const box = element.getBoundingClientRect();
@@ -183,7 +184,7 @@ try {
         assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Large groups grow naturally, without a capped name list');
         await page.locator('[data-page-target="start"]').click();
         assert.equal(await names.first().evaluate(element => element === document.activeElement), true);
-        assert.equal(await page.locator('.people').evaluate(element => element.scrollTop), 0, 'There is no nested name-list scroll position');
+        assert.equal(await page.locator('#participants-body').evaluate(element => element.scrollTop), 0, 'CTA scrolls the active section back to its first input');
         assert.equal(await names.first().evaluate(element => {
           const box = element.getBoundingClientRect();
           const list = element.closest('.people').getBoundingClientRect();
@@ -193,19 +194,44 @@ try {
         assert.equal(await page.locator('.person-row').first().evaluate(element => getComputedStyle(element).borderTopStyle), 'none', 'No competing focus border surrounds the row');
         await page.locator('.hint-details summary').first().click();
         assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Expanded hints never get clipped inside a capped list');
-        assert.equal(await page.locator('main').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'The expanded form has no internal scrollbar');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Expanded hints scroll only inside the Participants section');
         await page.locator('[data-field="hint"]').first().fill('A warm scarf');
         await page.locator('button[type="submit"]').click();
         await page.locator('[data-exchange-target="results"]:visible').waitFor();
+        await openPanel(page, 'links');
         assert.equal(await page.locator('[data-share-target="link"]').count(), 8);
-        assert.equal(await page.locator('main').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Long results grow naturally instead of being clipped in a fixed-height workspace');
-        await page.locator('.storage-panel summary').click();
+        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Long results scroll only inside Links to share');
+        await openStorage(page);
         await page.locator('[data-action="exchange#save"]').click();
         assert.equal(await page.locator('[data-exchange-target="status"]').isVisible(), true);
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       }, { locale, viewport: { width, height } });
     }
   }
+
+  await check('accordion switches rapidly and supports keyboard navigation', async page => {
+    await open(page);
+    const participants = page.locator('#participants-title');
+    const settings = page.locator('#settings-title');
+    const links = page.locator('#links-title');
+    await participants.focus();
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await settings.evaluate(element => element === document.activeElement), true);
+    await page.keyboard.press('End');
+    assert.equal(await links.evaluate(element => element === document.activeElement), true);
+    await page.evaluate(() => {
+      document.querySelector('#settings-title').click();
+      document.querySelector('#links-title').click();
+      document.querySelector('#participants-title').click();
+    });
+    await openPanel(page, 'participants');
+    assert.equal(await page.locator('.workflow-panel[open]').count(), 1);
+    assert.equal(await participants.getAttribute('aria-expanded'), 'true');
+    assert.equal(await links.getAttribute('aria-expanded'), 'false');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openPanel(page, 'settings');
+    assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => element.getAnimations().length === 0)), true);
+  }, { viewport: { width: 1366, height: 768 } });
 
   await check('CTA explicitly scrolls off-screen inputs on short mobile screens', async page => {
     await open(page);
@@ -244,14 +270,15 @@ try {
     await page.reload();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     await fillPeople(page, ['Alice', 'Bruno']);
-    await page.locator('[data-i18n="form.options"]').click();
+    await openPanel(page, 'settings');
     await page.locator('#exchange-name').fill('');
-    await page.locator('[data-i18n="form.options"]').click();
+    await page.locator('#settings-title').click();
     await page.locator('button[type="submit"]').click();
     assert.equal(await page.locator('#exchange-name').isVisible(), true, 'Native invalid fields expand their details');
     assert.equal(await page.locator('#exchange-name').evaluate(element => element === document.activeElement), true);
     assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
     await page.locator('#exchange-name').fill('Test exchange');
+    await openPanel(page, 'participants');
     await page.locator('[data-exchange-target="addButton"]').click();
     await page.locator('.hint-details summary').last().click();
     await page.locator('[data-field="hint"]').last().fill('Keep this hint');
@@ -260,6 +287,7 @@ try {
     assert.equal(await page.locator('[data-field="hint"]').last().inputValue(), 'Keep this hint');
     assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
     await page.locator('[data-field="hint"]').last().fill('');
+    await openPanel(page, 'settings');
     await page.locator('[data-i18n="form.exclusions"]').click();
     await page.locator('#excluded-giver').selectOption({ index: 3 });
     await page.locator('#excluded-recipient').selectOption({ index: 1 });
@@ -272,17 +300,17 @@ try {
   await check('mobile draw, private reveal, save/restore/delete, redraw confirmation', async page => {
     await open(page);
     await fillPeople(page);
-    await page.locator('.optional > summary').first().click();
+    await openPanel(page, 'settings');
     await page.getByLabel('Budget', { exact: false }).fill('25 €');
     await page.getByLabel('Exchange date', { exact: false }).fill('2026-12-25');
     await drawNames(page);
     assert.equal(await page.locator('[data-share-target="link"]').count(), 3);
     assert.equal(await page.evaluate(() => localStorage.length), 0, 'No automatic saving');
     const invitation = await page.locator('[data-share-target="link"]').first().inputValue();
-    await page.getByText('Save or restore on this device', { exact: true }).click();
+    await openStorage(page);
     await page.getByRole('button', { name: 'Save on this device', exact: true }).click();
     await page.reload();
-    await page.getByText('Save or restore on this device', { exact: true }).click();
+    await openStorage(page);
     await page.getByRole('button', { name: 'Restore saved copy' }).click();
     assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), invitation);
     await page.evaluate(() => localStorage.setItem('unrelated', 'keep'));
@@ -311,6 +339,7 @@ try {
   await check('exclusions and impossible constraints have useful errors', async page => {
     await open(page);
     await fillPeople(page, ['Alice', 'Bob']);
+    await openPanel(page, 'settings');
     await page.getByText("Who shouldn't draw whom?", { exact: true }).click();
     await page.getByLabel('This person', { exact: true }).selectOption({ label: 'Alice' });
     await page.getByLabel('should not draw', { exact: true }).selectOption({ label: 'Bob' });
@@ -334,7 +363,7 @@ try {
     assert.equal(await page.getByRole('button', { name: 'Copy invitation' }).count(), 0);
     assert.equal(await page.getByRole('button', { name: 'Send privately' }).count(), 0);
     assert.ok((await page.locator('[data-share-target="link"]').first().inputValue()).includes('#santa=1.'));
-    await page.getByText('Save or restore on this device', { exact: true }).click();
+    await openStorage(page);
     for (const name of ['Save on this device', 'Restore saved copy', 'Delete saved copy']) {
       await page.getByRole('button', { name, exact: true }).click();
       assert.match(await page.locator('[data-exchange-target="status"]').textContent(), /could not/);
@@ -401,7 +430,7 @@ try {
     await open(page);
     await fillPeople(page, ['Alice', 'Bob']);
     await page.evaluate(() => localStorage.setItem('secretsanta.saved.v1', '{'));
-    await page.getByText('Save or restore on this device', { exact: true }).click();
+    await openStorage(page);
     await page.getByRole('button', { name: 'Restore saved copy' }).click();
     assert.match(await page.locator('[data-exchange-target="status"]').textContent(), /damaged/);
     assert.equal(await page.locator('[data-field="name"]').first().inputValue(), 'Alice');
@@ -432,10 +461,12 @@ try {
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Nosso Amigo Secreto');
     await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Notre Père Noël secret');
-    await page.locator('[data-i18n="form.options"]').click();
+    await openPanel(page, 'settings');
     await page.locator('#exchange-name').fill('Natal em família');
+    await openPanel(page, 'participants');
     await page.locator('[data-field="name"]').nth(0).fill('Maël');
     await page.locator('[data-field="name"]').nth(1).fill('João');
+    await openPanel(page, 'settings');
     await page.locator('#date').fill('2026-12-25');
     await page.locator('#budget').fill('R$ 50');
     await page.locator('button[type="submit"]').click();

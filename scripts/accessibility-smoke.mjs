@@ -1,7 +1,7 @@
 // Optional tooling only; axe and Playwright are installed outside the repo.
 import assert from 'node:assert/strict';
 import { Invitation } from '../packages/core/invitations.js';
-import { openLanguageMenu } from './browser-helpers.mjs';
+import { openLanguageMenu, openPanel } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { default: AxeBuilder } = await import(process.env.AXE_MODULE || '@axe-core/playwright');
@@ -23,9 +23,11 @@ try {
       const page = await context.newPage();
       await page.goto(base);
       await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
-      for (const detail of await page.locator('details.optional').all()) await detail.locator('summary').click();
       await page.locator('[data-field="name"]').nth(0).fill('Alice');
       await page.locator('[data-field="name"]').nth(1).fill('Bob');
+      await check(page, `${locale} participants accordion`);
+      await openPanel(page, 'settings');
+      for (const detail of await page.locator('details.optional').all()) await detail.locator('summary').click();
       await check(page, `${locale} organiser and expanded options`);
       await openLanguageMenu(page);
       await check(page, `${locale} open language picker`);

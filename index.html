@@ -63,22 +63,25 @@
       <p id="startup" class="notice" role="status" data-i18n="app.startup" data-page-target="startup">The app is loading. If this message stays, check that JavaScript is enabled and reload.</p>
       <noscript><p class="notice" data-i18n="app.noJs">JavaScript is required to draw names on your device and open invitations. No draw details are sent to an application server.</p></noscript>
 
-      <section data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize" aria-labelledby="organiser-title">
-        <div class="section-heading" data-exchange-target="setupHeading">
-          <h2 id="organiser-title" data-i18n="organiser.title">Who's taking part?</h2>
-          <p class="help" data-i18n="form.peopleHelp">At least 2 people. Nobody draws themselves.</p>
-        </div>
+      <section class="exchange-workspace" data-page-target="organiser" data-controller="exchange" data-action="locale:changed@document->exchange#localize exchange:start->exchange#start" aria-labelledby="organiser-title">
+        <h2 id="organiser-title" class="sr-only" data-i18n="form.legend">Create your exchange</h2>
         <p class="status" role="status" aria-live="polite" data-exchange-target="status"></p>
         <p class="error" role="alert" tabindex="-1" hidden data-exchange-target="error"></p>
 
         <form data-exchange-target="form" data-action="submit->exchange#draw:prevent invalid->exchange#showInvalid:capture">
-          <fieldset disabled data-exchange-target="controls">
+          <fieldset class="workflow-controls" disabled data-exchange-target="controls">
             <legend class="sr-only" data-i18n="form.legend">Create your exchange</legend>
-            <div class="people" role="group" aria-label="Names" data-i18n-aria-label="form.people" data-exchange-target="people"></div>
-            <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
-
-            <details class="optional">
-              <summary data-i18n="form.options">Exchange details (optional)</summary>
+            <details class="workflow-panel" name="exchange-panels" open data-exchange-target="participantsPanel">
+              <summary id="participants-title" aria-controls="participants-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.participants">Participants</span></summary>
+              <div id="participants-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="participants-title"><div class="workflow-content">
+                <p class="help" data-i18n="form.peopleHelp">At least 2 people. Nobody draws themselves.</p>
+                <div class="people" role="group" aria-label="Names" data-i18n-aria-label="form.people" data-exchange-target="people"></div>
+                <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
+              </div></div>
+            </details>
+            <details class="workflow-panel" name="exchange-panels" data-exchange-target="settingsPanel">
+              <summary id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></summary>
+              <div id="settings-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="settings-title"><div class="workflow-content">
               <label for="exchange-name" data-i18n="form.occasion">Exchange name</label>
               <input id="exchange-name" type="text" value="Our Secret Santa" data-i18n-default="form.defaultName" required maxlength="80" autocomplete="off" data-exchange-target="name">
               <div class="two-columns">
@@ -88,8 +91,6 @@
               <label for="instructions" data-i18n="form.instructions">A note for everyone (optional)</label>
               <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-i18n-placeholder="form.instructionsPlaceholder" data-exchange-target="instructions"></textarea>
               <p class="help" data-i18n="form.snapshots">Details and gift hints are included in the invitations. They won't update after you send them.</p>
-            </details>
-
             <details class="optional">
               <summary data-i18n="form.exclusions">Who shouldn't draw whom?</summary>
               <p class="help" data-i18n="form.exclusionsHelp">For example, stop partners drawing each other. Each rule works in one direction; add the reverse rule if needed.</p>
@@ -100,13 +101,12 @@
               <button type="button" data-i18n="form.addExclusion" data-action="exchange#addRule">Add exclusion</button>
               <ul class="rules" data-exchange-target="rules"></ul>
             </details>
-            <div class="draw-action">
-              <button class="primary" type="submit" data-action="exchange#prepareDraw" data-i18n="form.draw">Match everyone</button>
-              <p class="help" data-i18n="form.drawHelp">The draw happens on your device. Nothing is saved automatically.</p>
-            </div>
-          </fieldset>
-        </form>
-
+              </div></div>
+            </details>
+            <details class="workflow-panel" name="exchange-panels" data-exchange-target="linksPanel">
+              <summary id="links-title" aria-controls="links-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.links">Links to share</span></summary>
+              <div id="links-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="links-title"><div class="workflow-content">
+                <p data-exchange-target="emptyResults" data-i18n="workflow.empty">Your invitations will appear here. You can save a draft below.</p>
         <section hidden data-exchange-target="results" aria-labelledby="results-title">
           <h2 id="results-title" tabindex="-1" data-i18n="results.title" data-exchange-target="resultHeading">Your invitations are ready.</h2>
           <p data-i18n="results.intro">Send each link only to the person named on its card.</p>
@@ -124,6 +124,15 @@
             <button type="button" disabled class="quiet" data-i18n="storage.delete" data-exchange-target="storageButton" data-action="exchange#deleteSaved">Delete saved copy</button>
           </div>
         </details>
+
+              </div></div>
+            </details>
+            <div class="draw-action" data-exchange-target="matchActions">
+              <button class="primary" type="submit" data-exchange-target="matchButton" data-action="exchange#prepareDraw" data-i18n="form.draw">Match everyone</button>
+              <p class="help" data-i18n="form.drawHelp">The draw happens on your device. Nothing is saved automatically.</p>
+            </div>
+          </fieldset>
+        </form>
 
         <dialog aria-labelledby="redraw-title" aria-describedby="redraw-description" data-exchange-target="confirm">
           <h2 id="redraw-title" data-i18n="redraw.title">Start a new draw?</h2>

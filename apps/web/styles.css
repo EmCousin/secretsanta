@@ -111,6 +111,21 @@ a { color: var(--green); text-underline-offset: .2em; }
 @keyframes star-glow { from { transform: translate(-50%, -50%) scale(.9); opacity: .3; } to { transform: translate(-50%, -50%) scale(1.15); opacity: .65; } }
 
 main { width: min(100%, 580px); min-width: 0; margin: 0 auto; padding: 1.25rem 1.5rem; background: linear-gradient(145deg, #fffaf0, #fcf5e7); color: var(--ink); border: 1px solid #ead8ae; border-radius: 1.75rem; box-shadow: 0 24px 80px #031c2333, 0 3px 16px #031c231a, inset 0 1px 0 #ffffffcc; }
+.exchange-workspace, .exchange-workspace > form, .workflow-controls { display: flex; flex-direction: column; min-height: 0; }
+.exchange-workspace { height: 100%; }
+.exchange-workspace > form, .workflow-controls { flex: 1; }
+.workflow-controls { gap: .5rem; }
+.workflow-panel { min-width: 0; }
+.workflow-panel > summary { display: flex; justify-content: space-between; align-items: center; gap: .5rem; min-height: 3rem; padding: .65rem .85rem; border-radius: .8rem; background: #eae1cc; color: var(--ink); font: 400 1.3rem/1.25 var(--festive-font); list-style: none; }
+.workflow-panel > summary::-webkit-details-marker { display: none; }
+.workflow-panel > summary::after { content: ''; flex: 0 0 .45rem; height: .45rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); }
+.workflow-panel.is-active > summary { background: var(--green); color: #fff3d7; }
+.workflow-panel.is-active > summary::after { transform: rotate(45deg); }
+.workflow-body { min-height: 0; max-height: min(26rem, 55dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.workflow-body:focus-visible { outline-offset: -2px; }
+.workflow-content { padding: .65rem .4rem .4rem; }
+.workflow-content > :first-child { margin-top: 0; }
+.workflow-controls > .draw-action { margin-top: auto; padding-top: .35rem; }
 .section-heading { text-align: center; }
 .section-heading .eyebrow, .participant > .eyebrow { color: #975335; }
 h2, .participant h1 { font: 400 clamp(1.6rem, 2.5vw, 2rem)/1.25 var(--festive-font); margin: 0 0 .5rem; overflow-wrap: anywhere; }
@@ -197,6 +212,10 @@ footer summary { color: #f0dfb4; padding-block: .25rem; }
   main { width: 100%; padding-block: 1rem; }
   .people { margin-block: .5rem; }
   footer { padding-bottom: .5rem; }
+}
+@media (min-width: 960px) and (min-height: 700px) {
+  [data-view="organiser"] main { height: min(40rem, calc(100dvh - 10rem)); }
+  .workflow-body { max-height: none; }
 }
 @media (max-width: 650px) {
   .topbar { padding: 2.8rem 1rem 0; }

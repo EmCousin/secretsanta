@@ -4,18 +4,52 @@ import { Invitation } from '../../../packages/core/invitations.js';
 import { validateParticipants, validateExchange, ValidationError } from '../../../packages/core/validation.js';
 import { saveCopy, restoreCopy, deleteCopy } from '../storage.js';
 import { i18n } from '../localization.js';
+import { SectionAccordion } from '../section-accordion.js';
 
 export default class extends Controller {
-  static targets = ['controls', 'storageButton', 'form', 'setupHeading', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
+  static targets = ['controls', 'storageButton', 'form', 'participantsPanel', 'settingsPanel', 'linksPanel', 'emptyResults', 'matchActions', 'matchButton', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
 
   connect() {
     this.exclusions = [];
     this.invitations = null;
     this.addPerson();
     this.addPerson();
+    this.accordion = new SectionAccordion(this.controlsTarget, [this.participantsPanelTarget, this.settingsPanelTarget, this.linksPanelTarget]);
     this.controlsTarget.disabled = false;
     this.storageButtonTargets.forEach(button => { button.disabled = false; });
     this.dispatch('ready');
+  }
+
+  disconnect() { this.accordion?.disconnect(); }
+
+  switchPanel(event) {
+    if (!this.accordion) return;
+    event.preventDefault();
+    const panel = event.currentTarget.parentElement;
+    if (this.invitations && panel !== this.linksPanelTarget) return this.requestEdit(event, panel);
+    this.accordion.select(this.accordion.active === panel ? null : panel);
+  }
+
+  panelKey(event) { this.accordion?.focusHeader(event); }
+
+  focusControl(element) {
+    element.focus({ preventScroll: true });
+    element.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+  }
+
+  async start() {
+    const panel = this.invitations ? this.linksPanelTarget : this.participantsPanelTarget;
+    if (!await this.accordion.select(panel)) return;
+    this.accordion.body(panel).scrollTop = 0;
+    this.focusControl(this.invitations ? this.resultHeadingTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
+  }
+
+  setEditing(enabled) {
+    for (const panel of [this.participantsPanelTarget, this.settingsPanelTarget]) {
+      for (const input of panel.querySelectorAll('input, textarea, select, button')) input.disabled = !enabled;
+    }
+    this.matchActionsTarget.hidden = !enabled;
+    this.matchButtonTarget.disabled = !enabled;
   }
 
   addPerson(event, person) {
@@ -54,10 +88,14 @@ export default class extends Controller {
   }
 
   showInvalid(event) {
-    // Native validation must be able to focus fields inside collapsed details.
+    // A validation pass can report several fields. Only reveal its first error,
+    // otherwise a later invalid field could close the first field's panel.
+    const first = this.formTarget.querySelector('input:invalid, textarea:invalid, select:invalid');
+    if (first && first !== event.target) return;
     for (let parent = event.target.parentElement; parent && parent !== this.element; parent = parent.parentElement) {
-      if (parent.tagName === 'DETAILS') parent.open = true;
+      if (parent.tagName === 'DETAILS' && !parent.classList.contains('workflow-panel')) parent.open = true;
     }
+    this.accordion.select(event.target.closest('.workflow-panel'), { animate: false });
   }
 
   prepareDraw() {
@@ -139,8 +177,9 @@ export default class extends Controller {
     };
   }
 
-  draw(event) {
+  async draw(event) {
     event.preventDefault();
+    if (this.invitations) return;
     this.errorTarget.hidden = true;
     try {
       const draft = this.draft();
@@ -155,12 +194,12 @@ export default class extends Controller {
         const invitation = new Invitation({ v: 1, giver: giver.name, recipient: recipient.name, hint: recipient.hint, exchange });
         return { giverId, fragment: invitation.toFragment() };
       });
-      this.showResults();
       this.say('status.ready');
+      await this.showResults();
     } catch (error) { this.fail(error); }
   }
 
-  showResults() {
+  async showResults() {
     const people = new Map(this.readPeople().map(person => [person.id, person]));
     this.cardsTarget.replaceChildren();
     for (const item of this.invitations) {
@@ -174,26 +213,28 @@ export default class extends Controller {
       card.querySelector('label').htmlFor = input.id;
       this.cardsTarget.append(card);
     }
-    this.formTarget.hidden = true;
-    this.setupHeadingTarget.hidden = true;
-    this.element.setAttribute('aria-labelledby', 'results-title');
+    this.setEditing(false);
+    this.emptyResultsTarget.hidden = true;
     this.resultsTarget.hidden = false;
-    this.resultHeadingTarget.focus();
+    if (await this.accordion.select(this.linksPanelTarget)) this.focusControl(this.resultHeadingTarget);
   }
 
-  requestEdit() { this.confirmTarget.showModal(); }
+  requestEdit(event, panel = this.participantsPanelTarget) {
+    this.editPanel = panel;
+    this.confirmTarget.showModal();
+  }
   cancelEdit() { this.confirmTarget.close(); }
 
-  edit() {
+  async edit() {
     this.confirmTarget.close();
     this.invitations = null;
     this.cardsTarget.replaceChildren();
     this.resultsTarget.hidden = true;
-    this.formTarget.hidden = false;
-    this.setupHeadingTarget.hidden = false;
-    this.element.setAttribute('aria-labelledby', 'organiser-title');
-    this.peopleTarget.querySelector('input')?.focus();
+    this.emptyResultsTarget.hidden = false;
+    this.setEditing(true);
     this.say('status.edited');
+    const panel = this.editPanel || this.participantsPanelTarget;
+    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.nameTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
   }
 
   save() {
@@ -203,7 +244,7 @@ export default class extends Controller {
     } catch (error) { this.say(error instanceof ValidationError ? error : 'storage.saveFailed'); }
   }
 
-  restore() {
+  async restore() {
     try {
       const saved = restoreCopy();
       if (!saved) return this.say('storage.missing');
@@ -215,14 +256,13 @@ export default class extends Controller {
       this.updatePeople();
       this.invitations = saved.invitations;
       this.errorTarget.hidden = true;
-      if (this.invitations) this.showResults();
+      if (this.invitations) await this.showResults();
       else {
         this.resultsTarget.hidden = true;
         this.cardsTarget.replaceChildren();
-        this.formTarget.hidden = false;
-        this.setupHeadingTarget.hidden = false;
-        this.element.setAttribute('aria-labelledby', 'organiser-title');
-        (this.peopleTarget.querySelector('input') || this.addButtonTarget).focus();
+        this.emptyResultsTarget.hidden = false;
+        this.setEditing(true);
+        if (await this.accordion.select(this.participantsPanelTarget)) this.focusControl(this.peopleTarget.querySelector('input') || this.addButtonTarget);
       }
       this.say('storage.restored');
     } catch (error) { this.say(error instanceof ValidationError ? error : 'storage.restoreFailed'); }
