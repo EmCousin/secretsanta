@@ -20,19 +20,20 @@ Every continuous effect uses the shared `ambient-motion` class. Pausing freezes 
 
 ## Mobile language selector
 
-The toolbar uses a grid rather than shrinking the language control alongside the animation button. On narrow screens the selector gets its own full-width row, with a labelled, flexible-width native select. Its text remains at least 16px and its hit area at least 48px high; larger text also avoids the common small-input zoom behaviour on iOS. No custom menu or pointer-handling code replaces the native picker.
+The language picker occupies a full-width toolbar row on narrow screens. A native details/summary disclosure opens a labelled fieldset of native radio controls. The open panel matches the trigger width, wraps long labels, and scrolls internally when vertical space is limited. A small Stimulus controller measures the available height and opens the panel above the trigger when needed. Text is at least 16px and choice rows are at least 48px high.
 
-Regression checks use emulated touch at 320px, 375 × 667px, and 390px in all 3 languages. They tap the actual select, verify that the native popup opens, commit each choice with native keyboard navigation, and check language changes and overflow. This covers the web control in Chromium emulation, not physical iOS picker behaviour. The service worker version was bumped so existing installs can load the revised markup and stylesheet through the normal update prompt.
+The earlier native select fix only checked the closed control and popup opening. The user's screenshot showed the browser-owned popup overflowing the emulated viewport. The in-page panel now has directly testable bounds. Touch checks open it at 320px, 375 × 667px, and 390px in all 3 languages, measure every edge against the viewport, and select every choice. Additional checks cover keyboard navigation, Escape, outside clicks, focus return, landscape, short screens, and doubled root text size. Physical iOS and screen-reader review remain unverified. The worker version was bumped for the revised runtime.
 
 ## Review snapshots
 
 - [Desktop organiser, 1440px](screenshots/desktop.webp)
 - [Mobile organiser, 390px](screenshots/mobile.webp)
+- [Open French language picker, 375 × 667px](screenshots/language-open.webp)
 
-Snapshots show effects paused for inspection and contain no personal draw data. They are review assets, not runtime assets. They are not precached.
+Organiser snapshots show effects paused; the open-picker snapshot keeps effects running. None contains personal draw data. These review assets are not precached.
 
 ## Verification
 
-The design smoke script checks 320px, 375px, 390px, 768px, and 1440px in English, French, and Brazilian Portuguese. It checks overflow, pausing and persistence, normal reveal behaviour, and system reduced motion. At mobile widths it also checks native-picker touch opening, readable text, hit-area size, and language changes. Desktop, mobile, and reveal screenshots were inspected.
+The design smoke script checks 320px, 375px, 390px, 768px, and 1440px in English, French, and Brazilian Portuguese. It checks overflow, pausing and persistence, normal reveal behaviour, and system reduced motion. At mobile widths it checks the open options panel, touch selection, readable text, hit-area size, and language changes. Desktop, mobile, open-picker, and reveal screenshots were inspected.
 
-The optional axe audit runs WCAG A/AA rules against organiser/options, invitation cards, redraw dialog, pre-reveal, and revealed views in all 3 languages. These automated checks do not establish full accessibility conformance. Screen-reader use, physical-device touch behaviour, actual zoom, and native OS interfaces still need manual review.
+The optional axe audit runs WCAG A/AA rules against organiser/options, the open language picker, invitation cards, redraw dialog, pre-reveal, and revealed views in all 3 languages. These automated checks do not establish full accessibility conformance. Screen-reader use, physical-device touch behaviour, actual zoom, and native OS interfaces still need manual review.

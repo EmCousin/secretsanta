@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, sep, extname } from 'node:path';
 import { Invitation } from '../packages/core/invitations.js';
+import { chooseLanguage } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -77,7 +78,7 @@ try {
       await page.locator('[data-i18n="storage.summary"]').click();
       await page.locator('[data-action="exchange#restore"]').click();
       assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), originalLink);
-      await page.locator('#language').selectOption('fr');
+      await chooseLanguage(page, 'fr');
       assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
       const fresh = new Invitation({ v: 1, giver: 'Nouvel invité', recipient: 'Jamais visité', hint: 'Un livre', exchange: { name: 'Noël', date: '2026-12-25', budget: '25 €', instructions: '' } });
       const guest = await context.newPage();

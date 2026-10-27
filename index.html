@@ -23,14 +23,18 @@
     <div class="topbar">
       <div class="wordmark"><img src="./apps/web/icon.svg" width="40" height="40" alt=""><span data-i18n="app.title">Secret Santa</span></div>
       <button class="motion-toggle" type="button" disabled data-festivity-target="toggle" data-action="festivity#toggle" data-i18n="design.pause">Pause animations</button>
-      <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect">
-        <label for="language" data-i18n="language.label">Language</label>
-        <select id="language" disabled data-locale-target="select" data-action="change->locale#change">
-          <option value="" data-i18n="language.auto">Automatic (browser)</option>
-          <option value="en" lang="en">English</option>
-          <option value="fr" lang="fr">Français</option>
-          <option value="pt-BR" lang="pt-BR">Português (Brasil)</option>
-        </select>
+      <div class="language-picker" data-controller="locale" data-action="languagechange@window->locale#detect locale:changed@document->locale#render pointerdown@document->locale#outside focusin@document->locale#outside keydown.esc@document->locale#escape resize@window->locale#position scroll@window->locale#position">
+        <span id="language-label" data-i18n="language.label">Language</span>
+        <details class="language-menu" data-locale-target="menu" data-action="toggle->locale#position">
+          <summary id="language" aria-disabled="true" aria-labelledby="language-label language-current" aria-controls="language-options" data-locale-target="trigger" data-action="keydown.down->locale#focusOptions:prevent keydown.up->locale#focusOptions:prevent"><span id="language-current" data-locale-target="current">Automatic (browser)</span></summary>
+          <fieldset id="language-options" class="language-options" disabled data-locale-target="choices" data-action="change->locale#change click->locale#choose keydown.enter->locale#commit:prevent">
+            <legend class="sr-only" data-i18n="language.label">Language</legend>
+            <label><input type="radio" name="interface-language" value="" checked data-locale-target="option"><span data-i18n="language.auto">Automatic (browser)</span></label>
+            <label lang="en"><input type="radio" name="interface-language" value="en" data-locale-target="option"><span>English</span></label>
+            <label lang="fr"><input type="radio" name="interface-language" value="fr" data-locale-target="option"><span>Français</span></label>
+            <label lang="pt-BR"><input type="radio" name="interface-language" value="pt-BR" data-locale-target="option"><span>Português (Brasil)</span></label>
+          </fieldset>
+        </details>
       </div>
     </div>
     <header class="site-header">
