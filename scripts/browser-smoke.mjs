@@ -58,7 +58,7 @@ try {
         const box = element.getBoundingClientRect();
         return box.top >= 0 && box.bottom <= innerHeight;
       }), true, 'Start is visible on the first mobile screen');
-      assert.equal(await page.locator('#exchange-name').isVisible(), false, 'Prefilled exchange name stays in optional details');
+      assert.equal(await page.locator('#exchange-name, #budget').count(), 0, 'Exchange name and budget are not requested');
       assert.equal(await page.locator('.storage-panel').isVisible(), false, 'Saving is tucked into Links to share');
       const originalUrl = page.url();
       await start.click();
@@ -270,15 +270,6 @@ try {
     await page.reload();
     await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
     await fillPeople(page, ['Alice', 'Bruno']);
-    await openPanel(page, 'settings');
-    await page.locator('#exchange-name').fill('');
-    await page.locator('#settings-title').click();
-    await page.locator('button[type="submit"]').click();
-    assert.equal(await page.locator('#exchange-name').isVisible(), true, 'Native invalid fields expand their details');
-    assert.equal(await page.locator('#exchange-name').evaluate(element => element === document.activeElement), true);
-    assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
-    await page.locator('#exchange-name').fill('Test exchange');
-    await openPanel(page, 'participants');
     await page.locator('[data-exchange-target="addButton"]').click();
     await page.locator('.hint-details summary').last().click();
     await page.locator('[data-field="hint"]').last().fill('Keep this hint');
@@ -300,7 +291,6 @@ try {
     await open(page);
     await fillPeople(page);
     await openPanel(page, 'settings');
-    await page.getByLabel('Budget', { exact: false }).fill('25 €');
     await page.getByLabel('Exchange date', { exact: false }).fill('2026-12-25');
     await drawNames(page);
     assert.equal(await page.locator('[data-share-target="link"]').count(), 3);
@@ -371,6 +361,29 @@ try {
     await drawNames(page);
     const link = await page.locator('[data-share-target="link"]').first().inputValue();
     assert.equal(Invitation.fromFragment(new URL(link).hash).recipient, 'Bob');
+  });
+
+  await check('legacy saved exchange details and invitations remain readable', async page => {
+    await open(page);
+    await page.evaluate(() => localStorage.setItem('secretsanta.saved.v1', JSON.stringify({
+      v: 1,
+      draft: {
+        participants: [{ id: 'alice', name: 'Alice', hint: '' }, { id: 'bob', name: 'Bob', hint: '' }],
+        exclusions: [], exchange: { name: 'Family Christmas', budget: '25 €', date: '', instructions: '' },
+      },
+      invitations: null,
+    })));
+    await openStorage(page);
+    await page.locator('[data-action="exchange#restore"]').click();
+    await drawNames(page);
+    const link = await page.locator('[data-share-target="link"]').first().inputValue();
+    const invitation = Invitation.fromFragment(new URL(link).hash);
+    assert.equal(invitation.exchange.name, 'Family Christmas');
+    assert.equal(invitation.exchange.budget, '25 €');
+    await page.goto(link);
+    await page.locator('[data-invitation-target="reveal"]').click();
+    assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Family Christmas');
+    assert.match(await page.locator('[data-invitation-target="budget"]').textContent(), /25 €/);
   });
 
   await check('missing APIs and blocked storage keep usable fallbacks', async (page, context) => {
@@ -480,22 +493,17 @@ try {
   await check('Portuguese detection and live language switching preserve the draw and reveal', async page => {
     await open(page);
     assert.equal(await page.locator('html').getAttribute('lang'), 'pt-BR');
-    assert.equal(await page.locator('#exchange-name').inputValue(), 'Nosso Amigo Secreto');
     await chooseLanguage(page, 'fr');
-    assert.equal(await page.locator('#exchange-name').inputValue(), 'Notre Père Noël secret');
-    await openPanel(page, 'settings');
-    await page.locator('#exchange-name').fill('Natal em família');
     await openPanel(page, 'participants');
     await page.locator('[data-field="name"]').nth(0).fill('Maël');
     await page.locator('[data-field="name"]').nth(1).fill('João');
     await openPanel(page, 'settings');
     await page.locator('#date').fill('2026-12-25');
-    await page.locator('#budget').fill('R$ 50');
     await page.locator('button[type="submit"]').click();
     const link = await page.locator('[data-share-target="link"]').first().inputValue();
     await chooseLanguage(page, 'en');
     assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), link);
-    assert.equal(await page.locator('#exchange-name').inputValue(), 'Natal em família');
+    assert.equal(await page.locator('#date').inputValue(), '2026-12-25');
     assert.match(await page.locator('.invitation-card h3').first().textContent(), /Invitation for Maël/);
     await page.goto(link);
     await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
@@ -506,7 +514,7 @@ try {
     assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 de dezembro de 2026/);
     await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
-    assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Natal em família');
+    assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Secret Santa');
     assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 décembre 2026/);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   }, { locale: 'pt-BR', viewport: { width: 320, height: 740 } });

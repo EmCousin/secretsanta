@@ -96,12 +96,7 @@
             <details class="workflow-panel" name="exchange-panels" data-exchange-target="settingsPanel">
               <summary id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></summary>
               <div id="settings-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="settings-title"><div class="workflow-content">
-              <label for="exchange-name" data-i18n="form.occasion">Exchange name</label>
-              <input id="exchange-name" type="text" value="Our Secret Santa" data-i18n-default="form.defaultName" required maxlength="80" autocomplete="off" data-exchange-target="name">
-              <div class="two-columns">
-                <div><label for="budget" data-i18n="form.budget">Budget (optional)</label><input id="budget" type="text" maxlength="80" placeholder="Around 25 €" data-i18n-placeholder="form.budgetPlaceholder" data-exchange-target="budget"></div>
-                <div><label for="date" data-i18n="form.date">Exchange date (optional)</label><input id="date" type="date" data-exchange-target="date"></div>
-              </div>
+              <label for="date" data-i18n="form.date">Exchange date (optional)</label><input id="date" type="date" data-exchange-target="date">
               <label for="instructions" data-i18n="form.instructions">A note for everyone (optional)</label>
               <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-i18n-placeholder="form.instructionsPlaceholder" data-exchange-target="instructions"></textarea>
               <p class="help" data-i18n="form.snapshots">Details and gift hints are included in the invitations. They won't update after you send them.</p>
