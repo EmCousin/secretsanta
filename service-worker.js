@@ -1,6 +1,6 @@
 // Bump the version whenever any precached runtime file changes. Install the
 // whole release before activation; do not replace a running app without consent.
-const CACHE_VERSION = '2026-10-26-offline-1';
+const CACHE_VERSION = '2026-10-27-christmas-5';
 const SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `secretsanta-shell:${encodeURIComponent(SCOPE.pathname)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
@@ -10,6 +10,14 @@ const ASSETS = [
   './apps/web/app.js',
   './apps/web/styles.css',
   './apps/web/icon.svg',
+  './apps/web/art/christmas-scene.svg',
+  './apps/web/art/chimney-smoke.svg',
+  './apps/web/art/sleigh.svg',
+  './apps/web/art/window-lights.svg',
+  './apps/web/art/languages/auto.svg',
+  './apps/web/art/languages/en.svg',
+  './apps/web/art/languages/fr.svg',
+  './apps/web/art/languages/pt-BR.svg',
   './apps/web/icons/icon-192.png',
   './apps/web/icons/icon-512.png',
   './apps/web/icons/apple-touch-icon.png',
@@ -26,6 +34,7 @@ const ASSETS = [
   './apps/web/controllers/share_controller.js',
   './apps/web/controllers/locale_controller.js',
   './apps/web/controllers/pwa_controller.js',
+  './apps/web/controllers/festivity_controller.js',
   './packages/core/draw.js',
   './packages/core/invitations.js',
   './packages/core/validation.js',

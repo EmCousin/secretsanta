@@ -40,6 +40,7 @@ The root manifest declares npm workspaces for organisation only. Browser imports
 - [Remaining reference-app parity](https://github.com/EmCousin/secretsanta/issues/7): forced pairings, bulk entry, and export choices remain open follow-ups.
 - [Localisation](https://github.com/EmCousin/secretsanta/issues/9): English, French, and Brazilian Portuguese.
 - [Offline/PWA support](https://github.com/EmCousin/secretsanta/issues/11): installable static app with versioned, app-scoped offline caching.
+- [Christmas design](https://github.com/EmCousin/secretsanta/issues/10): original snowy-house, Santa, and Nativity artwork, with pausable snow and lights.
 
 Implementation is reviewed through pull requests. Stacked PRs identify their prerequisite and merge order.
 
@@ -80,3 +81,9 @@ Use the browser's Install/Add to Home Screen menu where available; iOS Safari ex
 The worker caches only a fixed list of static files. It canonicalises app navigations to the cached HTML; it never stores invitation fragments, query variants, forms, or personal results. Saved exchanges remain a separate explicit action. Same-origin requests are allowed by CSP for worker installation; external connections remain blocked.
 
 Updates install a complete new cache before activation. An active page offers an update button and a warning before reload; it does not reload automatically or save your work silently. See [offline maintenance](docs/offline.md) and [tests](docs/testing.md).
+
+## Christmas design
+
+The original local illustration includes a warm Christmas house, Santa's sleigh, and a Nativity scene with Mary, Joseph, the infant Jesus, and the Star of Bethlehem. Evergreen, cranberry, gold, falling snow, and twinkling lights carry through the organiser and participant screens. The visual direction evokes a cosy Christmas film without including movie assets.
+
+Use the visible snow/lights control to pause the effects. System reduced-motion settings disable them; the layout and artwork remain complete without animation or JavaScript. No external fonts, media, or audio are loaded. [Design notes and review screenshots](docs/design.md) describe the artwork and accessibility checks.

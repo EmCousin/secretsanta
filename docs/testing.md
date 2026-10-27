@@ -41,6 +41,8 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] Host below a subpath. Check local assets and invitations without rewriting or SPA fallback rules.
 - [ ] Check the network panel: static same-origin assets only; no fields or invitation fragments in request URLs.
 - [ ] Check English, French, and Brazilian Portuguese, browser-language detection, English fallback, and the automatic/manual language selector. Switch languages before and after drawing/revealing; no fields or assignments should change.
+- [ ] Check radio, flag, and text alignment, including wrapped labels and enlarged text. Confirm the selected flag (or Automatic globe) appears in the closed picker and all icons load offline. Screen readers should announce language names without flag descriptions.
+- [ ] Open the language picker on each mobile browser, including landscape and enlarged text. Check the open panel stays within the screen, all choices remain reachable, radio arrows work, and Escape/outside taps/Tab dismiss it without trapping focus. Check the disclosure name and radio group with a screen reader.
 
 ## Verified in the initial implementation
 
@@ -64,3 +66,26 @@ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/inde
 This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 12 normal UI browser scenarios also pass with worker registration enabled.
 
 Manual follow-ups: first-install failure UI, actual OS installation menus, iOS standalone mode, browser cache eviction, multiple long-lived tabs, and device-native sharing still need real-device verification.
+
+## Christmas design verification
+
+```sh
+BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/design-smoke.mjs
+```
+
+17 scenarios pass: every combination of en/fr/pt-BR with 320/375/390/768/1440px layouts, plus a keyboard/constrained-picker scenario and system reduced motion. They cover overflow, pause persistence, translated motion controls, and ordinary reveal behaviour. Mobile cases use touch emulation, including the reported 375 × 667px viewport. The script saves screenshots in `/tmp/opencode` by default; `SCREENSHOT_DIR` selects another existing directory. Selected review snapshots are in `docs/screenshots`.
+
+For the optional accessibility checks, add only external tooling:
+
+```sh
+npm install --prefix /tmp/opencode/secretsanta-browser --no-save --package-lock=false playwright@1.56.1 @axe-core/playwright@4.11.0
+BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs AXE_MODULE=/tmp/opencode/secretsanta-browser/node_modules/@axe-core/playwright/dist/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/accessibility-smoke.mjs
+```
+
+18 axe WCAG A/AA scenarios pass: 6 UI states in each language, including expanded form options, the open language picker, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Screen-reader review and physical devices remain required manual follow-ups. The 35 Node tests, 12 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
+
+The copy/motion follow-up adds an English HTML/catalogue synchronisation check. The design scenarios verify that the sleigh, smoke, windows, star, and snowflakes really have running animation timelines; pausing stops every ambient timeline, including its clock. They also test live reduced-motion changes and verify that paused/reduced entry effects never leave invitation cards hidden. Updated desktop/mobile screenshots were inspected, and the added illustration layers are included in the offline coverage check.
+
+The mobile-picker follow-up checks 16px text, 48px minimum rows, fluid sizing, and centre-point hit testing. The original native-popup test did not check the popup's bounds. The replacement uses native details and radios in an in-page panel: tests tap it open, check every panel edge against the viewport, verify no internal horizontal overflow, and tap Automatic/English/French/Portuguese. Separate checks use native radio arrow navigation, Enter/Escape, Tab, and outside clicks. They also cover 667 × 375px landscape, a 375 × 280px short viewport, and doubled root text size at 320px, including reaching the last choice by scrolling the panel. A screenshot records the open French picker at 375 × 667px. Actual Safari/iOS, browser zoom, and screen readers still require manual checks.
+
+Alignment checks measure the vertical centres of each native radio, local flag/globe icon, and text label (within 1px), and verify the columns line up across all choices. They include wrapped text and doubled root text size. Tests also check icon loading, selected-icon updates, and unchanged accessible radio names. The worker scenarios verify every language icon loads after an offline reload.

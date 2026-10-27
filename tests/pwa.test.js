@@ -75,8 +75,10 @@ test('worker installs the allowlist and never caches invitation navigations', as
 test('activation only removes this scope’s old caches', async () => {
   const removed = [];
   const prefix = 'secretsanta-shell:%2Fparty%2F:';
-  const caches = { async keys() { return [`${prefix}old`, `${prefix}2026-10-26-offline-1`, 'unrelated', 'secretsanta-shell:%2Fother%2F:old']; }, async delete(name) { removed.push(name); } };
+  let current;
+  const caches = { async keys() { return [`${prefix}old`, current, 'unrelated', 'secretsanta-shell:%2Fother%2F:old']; }, async delete(name) { removed.push(name); } };
   const sw = await worker({ caches });
+  current = sw.get('CACHE_NAME');
   let pending;
   sw.events.get('activate')({ waitUntil: promise => { pending = promise; } });
   await pending;
