@@ -209,6 +209,32 @@ try {
     }
   }
 
+  await check('Hotwire user agent loads local Turbo without taking over the form', async page => {
+    await open(page);
+    assert.equal(await page.evaluate(() => Boolean(window.Turbo) && !window.Turbo.session.drive), true);
+    await fillPeople(page, ['Alice', 'Bob']);
+    await drawNames(page);
+    const link = await page.locator('[data-share-target="link"]').first().inputValue();
+    await page.goto(link);
+    await page.locator('[data-invitation-target="reveal"]:enabled').click();
+    assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'Bob');
+  }, { userAgent: 'Mozilla/5.0 Hotwire Native Android; Turbo Native Android;', viewport: { width: 390, height: 844 } });
+
+  await check('Hotwire user agent can load the prepared web app offline', async (page, context) => {
+    await open(page);
+    await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    await context.setOffline(true);
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    assert.equal(await page.evaluate(() => Boolean(window.Turbo)), true);
+    await fillPeople(page, ['Alice', 'Bob']);
+    await drawNames(page);
+    assert.equal(await page.locator('[data-share-target="link"]').count(), 2);
+    await context.setOffline(false);
+  }, { userAgent: 'Mozilla/5.0 Hotwire Native Android; Turbo Native Android;' });
+
   await check('accordion switches rapidly and supports keyboard navigation', async page => {
     await open(page);
     const participants = page.locator('#participants-title');
