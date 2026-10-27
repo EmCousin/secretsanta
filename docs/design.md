@@ -22,6 +22,8 @@ Every continuous effect uses the shared `ambient-motion` class. Pausing freezes 
 
 The language picker occupies a full-width toolbar row on narrow screens. A native details/summary disclosure opens a labelled fieldset of native radio controls. The open panel matches the trigger width, wraps long labels, and scrolls internally when vertical space is limited. A small Stimulus controller measures the available height and opens the panel above the trigger when needed. Text is at least 16px and choice rows are at least 48px high.
 
+Choice rows use fixed radio and icon columns with vertically centred text. Native radio margins are reset so browser defaults cannot offset the controls. The mobile label sits above the trigger to leave room for flags and enlarged text. Original local SVG icons show the UK flag for English, France for French, Brazil for Brazilian Portuguese, and a globe for Automatic. The selected icon also appears in the closed picker. Icons have empty alt text; language names remain the accessible labels. All four icons are precached for offline use.
+
 The earlier native select fix only checked the closed control and popup opening. The user's screenshot showed the browser-owned popup overflowing the emulated viewport. The in-page panel now has directly testable bounds. Touch checks open it at 320px, 375 × 667px, and 390px in all 3 languages, measure every edge against the viewport, and select every choice. Additional checks cover keyboard navigation, Escape, outside clicks, focus return, landscape, short screens, and doubled root text size. Physical iOS and screen-reader review remain unverified. The worker version was bumped for the revised runtime.
 
 ## Review snapshots

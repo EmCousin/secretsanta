@@ -8,6 +8,24 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 const base = process.env.BASE_URL || 'http://127.0.0.1:8000/';
 const screenshotDir = process.env.SCREENSHOT_DIR || '/tmp/opencode';
 
+async function checkPickerAlignment(page) {
+  await page.waitForFunction(() => [...document.querySelectorAll('.language-icon')]
+    .every(image => image.complete && image.naturalWidth > 0));
+  const rows = await page.locator('#language-options label').evaluateAll(labels => labels.map(label => {
+    const [radio, icon, text] = [label.querySelector('input'), label.querySelector('img'), label.querySelector('.language-name')]
+      .map(element => element.getBoundingClientRect());
+    return {
+      radioX: radio.x, iconX: icon.x, textX: text.x,
+      radioY: radio.y + radio.height / 2, iconY: icon.y + icon.height / 2, textY: text.y + text.height / 2,
+    };
+  }));
+  for (const row of rows) {
+    assert.ok(Math.abs(row.radioY - row.textY) <= 1 && Math.abs(row.iconY - row.textY) <= 1, 'Radio, flag, and label share a vertical centre, even with wrapped text');
+    for (const column of ['radioX', 'iconX', 'textX']) assert.ok(Math.abs(row[column] - rows[0][column]) <= 1, 'Choice columns line up across rows');
+  }
+  assert.equal(await page.getByRole('radio', { name: 'English', exact: true }).count(), 1, 'Flags do not change accessible language names');
+}
+
 async function checkTouchPicker(page, locale, width) {
   for (const preference of ['', 'en', 'fr', 'pt-BR']) {
     const trigger = page.locator('#language');
@@ -16,13 +34,12 @@ async function checkTouchPicker(page, locale, width) {
       return {
         height: box.height, width: box.width,
         fontSize: parseFloat(getComputedStyle(element).fontSize),
-        labelWidth: document.querySelector('#language-label').getBoundingClientRect().width,
         pickerWidth: element.closest('.language-picker').getBoundingClientRect().width,
         reachable: element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)),
       };
     });
     assert.ok(layout.height >= 48 && layout.fontSize >= 16, 'Touch picker has readable text and a full-size hit area');
-    assert.ok(layout.width >= layout.pickerWidth - layout.labelWidth - 12, 'Picker fills its mobile row instead of using a fixed width');
+    assert.ok(layout.width >= layout.pickerWidth - 1, 'Picker fills its mobile row instead of using a fixed width');
     assert.equal(layout.reachable, true, 'Decoration and neighbouring controls cannot intercept a tap');
     await openLanguageMenu(page, { touch: true });
     await page.waitForFunction(() => {
@@ -32,6 +49,7 @@ async function checkTouchPicker(page, locale, width) {
     });
     const panel = page.locator('#language-options');
     assert.equal(await panel.evaluate(element => element.scrollWidth <= element.clientWidth), true, 'The OPEN options panel has no horizontal overflow');
+    await checkPickerAlignment(page);
     if (width === 375 && locale === 'fr' && preference === 'pt-BR') {
       await page.screenshot({ path: `${screenshotDir}/secretsanta-language-open-375.png`, fullPage: false });
     }
@@ -39,6 +57,7 @@ async function checkTouchPicker(page, locale, width) {
     const expected = new I18n([locale], preference).locale;
     await page.waitForFunction(expected => document.documentElement.lang === expected, expected);
     assert.equal(await page.locator(`[data-locale-target="option"][value="${preference}"]`).isChecked(), true);
+    assert.equal(await page.locator('[data-locale-target="currentIcon"]').getAttribute('src'), `./apps/web/art/languages/${preference || 'auto'}.svg`, 'The closed picker shows the selected flag or Automatic globe');
     assert.equal(await page.locator('[data-locale-target="menu"]').evaluate(element => element.open), false);
     assert.equal(await trigger.evaluate(element => element === document.activeElement), true, 'Selection returns focus to the trigger');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -132,6 +151,7 @@ try {
         return box.left >= 0 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight;
       });
       assert.equal(await page.locator('#language-options').evaluate(element => element.scrollWidth <= element.clientWidth), true);
+      await checkPickerAlignment(page);
       await chooseLanguage(page, 'pt-BR');
       assert.equal(await page.locator('html').getAttribute('lang'), 'pt-BR', 'Last option stays reachable in a constrained panel');
     }

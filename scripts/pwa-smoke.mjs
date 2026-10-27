@@ -80,6 +80,9 @@ try {
       assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), originalLink);
       await chooseLanguage(page, 'fr');
       assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+      await page.waitForFunction(() => [...document.querySelectorAll('.language-icon')]
+        .every(image => image.complete && image.naturalWidth > 0));
+      assert.match(await page.locator('[data-locale-target="currentIcon"]').getAttribute('src'), /languages\/fr\.svg$/);
       const fresh = new Invitation({ v: 1, giver: 'Nouvel invité', recipient: 'Jamais visité', hint: 'Un livre', exchange: { name: 'Noël', date: '2026-12-25', budget: '25 €', instructions: '' } });
       const guest = await context.newPage();
       await guest.goto(fresh.toUrl(base));

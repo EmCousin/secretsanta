@@ -2,7 +2,7 @@ import { Controller } from '../vendor/stimulus.js';
 import { i18n, setLanguage } from '../localization.js';
 
 export default class extends Controller {
-  static targets = ['menu', 'trigger', 'current', 'choices', 'option'];
+  static targets = ['menu', 'trigger', 'current', 'currentIcon', 'choices', 'option'];
 
   connect() {
     this.render();
@@ -16,7 +16,9 @@ export default class extends Controller {
 
   render() {
     for (const option of this.optionTargets) option.checked = option.value === i18n.preference;
-    this.currentTarget.textContent = this.optionTargets.find(option => option.checked).nextElementSibling.textContent;
+    const choice = this.optionTargets.find(option => option.checked).nextElementSibling;
+    this.currentTarget.textContent = choice.querySelector('.language-name').textContent;
+    this.currentIconTarget.setAttribute('src', choice.querySelector('img').getAttribute('src'));
     this.position();
   }
 
