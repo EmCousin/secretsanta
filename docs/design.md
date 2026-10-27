@@ -6,11 +6,11 @@ The house illustration includes Santa's sleigh and reindeer. A small Nativity wi
 
 Snow and lights are pointer-transparent and hidden from assistive technology. They sit behind the content; paper panels keep snow away from inputs and text. Animations are slow, with no flashing or sound. The pause/play control is translated and remembers only an explicit preference. `prefers-reduced-motion` disables both effects regardless of saved preferences. No-JS content starts with effects paused.
 
-The main form uses familiar native controls, visible focus, clear step hints, and a cream reading surface. Narrow layouts stack cards; desktop layouts use two columns for people and invitations. All static art and icons are precached, with the worker version bumped for this release.
+The main form uses familiar native controls, visible focus, and a cream reading surface. Names use compact rows in one column; invitation cards use two columns on desktop and stack on phones. All static art and icons are precached, with the worker version bumped for this release.
 
 ## Copy and motion follow-up
 
-The interface now uses direct instructions in all 3 languages. Headings name the task, such as “Who's taking part?”, and the steps say “Add names”, “Draw names”, and “Send the links”. The English HTML fallback is checked against the catalogue so the no-JS version does not retain old slogans.
+The interface uses direct instructions in all 3 languages. Headings name the task, such as “Who's taking part?”, and buttons name their action. The English HTML fallback is checked against the catalogue so the no-JS version does not retain old slogans.
 
 Rounded panels, fields, buttons, windows, and tree shapes replace the harder edges and borders. Shadows are diffused, headings no longer use widely spaced capitals, and reading surfaces retain sufficient contrast.
 
@@ -26,13 +26,25 @@ Choice rows use fixed radio and icon columns with vertically centred text. Nativ
 
 The earlier native select fix only checked the closed control and popup opening. The user's screenshot showed the browser-owned popup overflowing the emulated viewport. The in-page panel now has directly testable bounds. Touch checks open it at 320px, 375 × 667px, and 390px in all 3 languages, measure every edge against the viewport, and select every choice. Additional checks cover keyboard navigation, Escape, outside clicks, focus return, landscape, short screens, and doubled root text size. Physical iOS and screen-reader review remain unverified. The worker version was bumped for the revised runtime.
 
+## Simpler first draw
+
+A visible “Start a draw” button sits before the welcome illustration. It focuses the first name without navigating or changing a URL fragment. With an existing draw it focuses the results instead of resetting them. If every name was removed, it focuses the Add button. The CTA remains disabled until organiser initialization succeeds.
+
+The mobile illustration is smaller. Setup starts with compact name rows; gift hints and exchange details stay collapsed. The exchange name retains its translated default inside optional details. Enter moves to the next name or adds a row; IME confirmation and Enter in gift hints keep their normal behaviour. Draw discards only unused trailing rows beyond the first two, never a row with a hint or an exclusion. Removing someone focuses the neighbouring name or Add button. Native validation opens collapsed details before focusing an invalid field.
+
+Local saving is still explicit and optional, below the form/results. Repeated setup headings, the numbered instruction strip, and duplicate footer copy are removed. Essential sharing, redraw, local-storage, and update warnings remain. Completed results replace the setup heading; returning to edit restores it.
+
+Invitation links hide the organiser welcome and open on a compact, personalised invitation with the existing gift icon, a short privacy reminder, and the reveal button. The generic title and metadata stay unchanged. Routing and language changes preserve the invitation fragment, and recipients remain absent until an explicit reveal. Leaving the invitation clears revealed text, including when Stimulus disconnects after its controller attribute is removed. New envelope artwork, sharing-card changes, couple exclusions, and bulk entry are outside this pass.
+
 ## Review snapshots
 
 - [Desktop organiser, 1440px](screenshots/desktop.webp)
 - [Mobile organiser, 390px](screenshots/mobile.webp)
 - [Open French language picker, 375 × 667px](screenshots/language-open.webp)
+- [Compact mobile name entry](screenshots/name-entry.webp)
+- [Participant invitation, 375 × 667px](screenshots/invitation.webp)
 
-Organiser snapshots show effects paused; the open-picker snapshot keeps effects running. None contains personal draw data. These review assets are not precached.
+Organiser and participant snapshots show effects paused; the open-picker snapshot keeps effects running. Names in the participant snapshot are test fixtures. These review assets are not precached.
 
 ## Verification
 

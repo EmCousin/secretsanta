@@ -27,6 +27,10 @@ The script checks a 320px layout, drawing, exclusions, explicit reveal, local sa
 Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Edge before calling those platforms verified. Do not mark a browser tested based on Chromium automation alone.
 
 - [ ] Complete a draw on a narrow phone and desktop, including exclusions and optional gift hints.
+- [ ] On the first mobile screen, use Start a draw to reach the first name. With existing results, verify it returns to those results without redrawing or changing links.
+- [ ] Enter advances name entry, never draws; verify mobile Next keyboards and East Asian IME confirmation. Remove a middle/last/all participant and check focus. An unused trailing row can be ignored on Draw, but a row with a hint or exclusion must be kept.
+- [ ] Clear the optional exchange name, close its details, and draw. Native validation should reopen the section and focus the field.
+- [ ] Open an invitation in a fresh mobile tab. The organiser hero is absent and the reveal action is easy to reach. Check malformed links, language changes, reload before/after reveal, and back/forward fragment navigation without stale revealed text.
 - [ ] Use keyboard only. Check tab order, visible focus, native details, inline errors, redraw dialog, and focus after results/reveal. Ensure you can return from the dialog with Escape.
 - [ ] Use a screen reader to check labels, status/error announcements, and absence of recipient details before reveal.
 - [ ] Check 200% and 400% zoom, long Unicode names, and no horizontal scrolling at 320px.
@@ -53,7 +57,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 
 ## Localisation verification
 
-29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 12 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, and blocked preference storage. Physical-device and native-speaker review remain recommended.
+29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 16 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, blocked preference storage, and the simpler entry flow in all 3 languages. Physical-device and native-speaker review remain recommended.
 
 ## Offline verification
 
@@ -63,7 +67,7 @@ The Node suite now has 34 tests, including complete precache coverage, manifest/
 PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/pwa-smoke.mjs
 ```
 
-This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 12 normal UI browser scenarios also pass with worker registration enabled.
+This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 16 normal UI browser scenarios also pass with worker registration enabled.
 
 Manual follow-ups: first-install failure UI, actual OS installation menus, iOS standalone mode, browser cache eviction, multiple long-lived tabs, and device-native sharing still need real-device verification.
 
@@ -82,10 +86,16 @@ npm install --prefix /tmp/opencode/secretsanta-browser --no-save --package-lock=
 BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs AXE_MODULE=/tmp/opencode/secretsanta-browser/node_modules/@axe-core/playwright/dist/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/accessibility-smoke.mjs
 ```
 
-18 axe WCAG A/AA scenarios pass: 6 UI states in each language, including expanded form options, the open language picker, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Screen-reader review and physical devices remain required manual follow-ups. The 35 Node tests, 12 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
+18 axe WCAG A/AA scenarios pass: 6 UI states in each language, including expanded form options, the open language picker, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Screen-reader review and physical devices remain required manual follow-ups. The 35 Node tests, 16 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
 
 The copy/motion follow-up adds an English HTML/catalogue synchronisation check. The design scenarios verify that the sleigh, smoke, windows, star, and snowflakes really have running animation timelines; pausing stops every ambient timeline, including its clock. They also test live reduced-motion changes and verify that paused/reduced entry effects never leave invitation cards hidden. Updated desktop/mobile screenshots were inspected, and the added illustration layers are included in the offline coverage check.
 
 The mobile-picker follow-up checks 16px text, 48px minimum rows, fluid sizing, and centre-point hit testing. The original native-popup test did not check the popup's bounds. The replacement uses native details and radios in an in-page panel: tests tap it open, check every panel edge against the viewport, verify no internal horizontal overflow, and tap Automatic/English/French/Portuguese. Separate checks use native radio arrow navigation, Enter/Escape, Tab, and outside clicks. They also cover 667 × 375px landscape, a 375 × 280px short viewport, and doubled root text size at 320px, including reaching the last choice by scrolling the panel. A screenshot records the open French picker at 375 × 667px. Actual Safari/iOS, browser zoom, and screen readers still require manual checks.
 
 Alignment checks measure the vertical centres of each native radio, local flag/globe icon, and text label (within 1px), and verify the columns line up across all choices. They include wrapped text and doubled root text size. Tests also check icon loading, selected-icon updates, and unchanged accessible radio names. The worker scenarios verify every language icon loads after an offline reload.
+
+## Simpler-entry verification
+
+The 16 UI scenarios include first-screen CTA visibility at 375 × 667px in en/fr/pt-BR, focus without navigation, compact rows, Enter/empty Enter, synthetic IME confirmation, hint newlines, neighbour focus, safe trailing-row removal, a 50-person limit, removing all names, and native validation of collapsed fields. They verify the CTA preserves completed invitation links and no draw is saved automatically. Invitation cases check first-screen reveal visibility, hidden organiser welcome, generic metadata, no recipient before reveal or after reload, language switching, and clearing revealed text when leaving the route. Physical mobile keyboards and real IME behaviour remain manual checks.
+
+The design suite remains 17 scenarios and the axe suite remains 18. Updated snapshots show the mobile welcome, compact entry, and direct participant entrance. The cache version was bumped; no new runtime dependency or asset was added.

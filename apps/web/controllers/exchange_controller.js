@@ -6,7 +6,7 @@ import { saveCopy, restoreCopy, deleteCopy } from '../storage.js';
 import { i18n } from '../localization.js';
 
 export default class extends Controller {
-  static targets = ['controls', 'storageButton', 'form', 'people', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
+  static targets = ['controls', 'storageButton', 'form', 'setupHeading', 'people', 'addButton', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
 
   connect() {
     this.exclusions = [];
@@ -35,10 +35,41 @@ export default class extends Controller {
 
   removePerson(event) {
     const row = event.currentTarget.closest('[data-person-id]');
+    const neighbour = row.nextElementSibling || row.previousElementSibling;
     this.exclusions = this.exclusions.filter(rule => rule.giverId !== row.dataset.personId && rule.recipientId !== row.dataset.personId);
     row.remove();
     this.updatePeople();
-    this.peopleTarget.querySelector('input')?.focus();
+    (neighbour?.querySelector('input') || this.addButtonTarget).focus();
+  }
+
+  nextPerson(event) {
+    // Enter can confirm an IME composition; it must not add a row in that case.
+    if (event.isComposing || event.keyCode === 229) return;
+    event.preventDefault();
+    const input = event.currentTarget;
+    if (!input.value.trim()) return;
+    const next = input.closest('[data-person-id]').nextElementSibling;
+    if (next) next.querySelector('[data-field="name"]').focus();
+    else this.addPerson(event);
+  }
+
+  showInvalid(event) {
+    // Native validation must be able to focus fields inside collapsed details.
+    for (let parent = event.target.parentElement; parent && parent !== this.element; parent = parent.parentElement) {
+      if (parent.tagName === 'DETAILS') parent.open = true;
+    }
+  }
+
+  prepareDraw() {
+    // Enter often leaves an unused last row. Discard only empty trailing rows
+    // before native validation, never hints, exclusions, or the first two people.
+    while (this.peopleTarget.children.length > 2) {
+      const row = this.peopleTarget.lastElementChild;
+      if (row.querySelector('[data-field="name"]').value.trim() || row.querySelector('[data-field="hint"]').value.trim()
+        || this.exclusions.some(rule => rule.giverId === row.dataset.personId || rule.recipientId === row.dataset.personId)) break;
+      row.remove();
+    }
+    this.updatePeople();
   }
 
   readPeople() {
@@ -144,6 +175,8 @@ export default class extends Controller {
       this.cardsTarget.append(card);
     }
     this.formTarget.hidden = true;
+    this.setupHeadingTarget.hidden = true;
+    this.element.setAttribute('aria-labelledby', 'results-title');
     this.resultsTarget.hidden = false;
     this.resultHeadingTarget.focus();
   }
@@ -157,7 +190,9 @@ export default class extends Controller {
     this.cardsTarget.replaceChildren();
     this.resultsTarget.hidden = true;
     this.formTarget.hidden = false;
-    this.nameTarget.focus();
+    this.setupHeadingTarget.hidden = false;
+    this.element.setAttribute('aria-labelledby', 'organiser-title');
+    this.peopleTarget.querySelector('input')?.focus();
     this.say('status.edited');
   }
 
@@ -185,7 +220,9 @@ export default class extends Controller {
         this.resultsTarget.hidden = true;
         this.cardsTarget.replaceChildren();
         this.formTarget.hidden = false;
-        this.nameTarget.focus();
+        this.setupHeadingTarget.hidden = false;
+        this.element.setAttribute('aria-labelledby', 'organiser-title');
+        (this.peopleTarget.querySelector('input') || this.addButtonTarget).focus();
       }
       this.say('storage.restored');
     } catch (error) { this.say(error instanceof ValidationError ? error : 'storage.restoreFailed'); }

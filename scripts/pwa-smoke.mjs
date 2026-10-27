@@ -121,6 +121,7 @@ try {
       assert.equal(await page.evaluate(async () => (await caches.keys()).filter(name => name.startsWith('secretsanta-shell:')).length), 1);
       console.log(`PASS ${prefix} worker update waits for consent and preserves unrelated caches`);
 
+      await page.locator('[data-i18n="form.options"]').click();
       await page.locator('#exchange-name').fill('Keep my unfinished draft');
       release++;
       failInstall = true;

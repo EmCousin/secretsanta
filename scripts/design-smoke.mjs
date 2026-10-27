@@ -100,10 +100,23 @@ try {
         assert.equal(await page.locator('body').getAttribute('data-motion'), 'paused', 'Explicit pause survives reload');
         if (locale === 'en' && (width === 375 || width === 390 || width === 1440)) {
           await page.screenshot({ path: `${screenshotDir}/secretsanta-christmas-${width}.png`, fullPage: true, animations: 'disabled' });
+          if (width === 390) {
+            await page.locator('[data-page-target="start"]').click();
+            await page.locator('main').screenshot({ path: `${screenshotDir}/secretsanta-ux-entry.png`, animations: 'disabled' });
+          }
         }
         const invitation = new Invitation({ v: 1, giver: 'Alice', recipient: 'João', hint: 'Un beau livre', exchange: { name: 'Family Christmas', date: '2026-12-25', budget: '25 €', instructions: 'Bring your gift on Christmas Day.' } });
         await page.goto(invitation.toUrl(base));
         await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
+        assert.equal(await page.locator('.site-header').isVisible(), false, 'Invitation entry skips the organiser welcome');
+        assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '');
+        if (locale === 'en' && width === 375) {
+          const guest = await context.newPage();
+          await guest.goto(invitation.toUrl(base));
+          await guest.locator('[data-invitation-target="reveal"]:enabled').waitFor();
+          await guest.screenshot({ path: `${screenshotDir}/secretsanta-ux-invitation.png`, fullPage: false, animations: 'disabled' });
+          await guest.close();
+        }
         await page.locator('[data-invitation-target="reveal"]').click();
         assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

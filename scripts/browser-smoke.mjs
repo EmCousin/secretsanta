@@ -2,6 +2,7 @@
 // See docs/testing.md. These are separate from the dependency-free Node suite.
 import assert from 'node:assert/strict';
 import { Invitation } from '../packages/core/invitations.js';
+import { I18n } from '../apps/web/i18n/index.js';
 import { chooseLanguage } from './browser-helpers.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -45,6 +46,126 @@ async function drawNames(page) {
 }
 
 try {
+  for (const locale of ['en', 'fr', 'pt-BR']) {
+    await check(`${locale} simple start, compact names, and direct invitation entrance`, async page => {
+      await open(page);
+      const start = page.locator('[data-page-target="start"]');
+      assert.equal(await start.isDisabled(), false);
+      assert.equal(await start.textContent(), new I18n([locale]).t('hero.start'));
+      assert.equal(await start.evaluate(element => {
+        const box = element.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }), true, 'Start is visible on the first mobile screen');
+      assert.equal(await page.locator('#exchange-name').isVisible(), false, 'Prefilled exchange name stays in optional details');
+      assert.equal(await page.locator('.storage-panel').evaluate(element =>
+        element.getBoundingClientRect().top > document.querySelector('button[type="submit"]').getBoundingClientRect().bottom), true);
+      const originalUrl = page.url();
+      await start.click();
+      assert.equal(page.url(), originalUrl, 'Start does not replace fragments or navigate');
+      const names = page.locator('[data-field="name"]');
+      assert.equal(await names.first().evaluate(element => element === document.activeElement), true);
+      assert.equal(await page.locator('.person-row').first().evaluate(element => element.getBoundingClientRect().height < 120), true, 'Name rows are compact');
+      await names.first().fill('Alice');
+      await names.first().press('Enter');
+      assert.equal(await names.count(), 2);
+      assert.equal(await names.nth(1).evaluate(element => element === document.activeElement), true);
+      await names.nth(1).press('Enter');
+      assert.equal(await names.count(), 2, 'Empty Enter does not add rows or draw');
+      await names.nth(1).fill('Bruno');
+      await names.nth(1).dispatchEvent('keydown', { key: 'Enter', code: 'Enter', isComposing: true });
+      assert.equal(await names.count(), 2, 'IME confirmation does not add a row');
+      await names.nth(1).press('Enter');
+      assert.equal(await names.count(), 3);
+      await names.nth(2).fill('Charlie');
+      await page.locator('[data-remove]').nth(1).click();
+      assert.equal(await names.nth(1).inputValue(), 'Charlie');
+      assert.equal(await names.nth(1).evaluate(element => element === document.activeElement), true, 'Removal focuses the neighbouring name');
+      await page.locator('.hint-details summary').first().click();
+      await page.locator('[data-field="hint"]').first().fill('Books');
+      await page.locator('[data-field="hint"]').first().press('Enter');
+      assert.equal(await names.count(), 2, 'Enter in hints remains a newline');
+      assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
+      await names.last().press('Enter');
+      assert.equal(await names.count(), 3, 'Enter leaves a new row ready for the next name');
+      await page.locator('button[type="submit"]').click();
+      assert.equal(await names.count(), 2, 'Draw ignores an unused trailing row');
+      const links = await page.locator('[data-share-target="link"]').evaluateAll(elements => elements.map(element => element.value));
+      assert.equal(links.length, 2);
+      assert.equal(await page.locator('[data-exchange-target="setupHeading"]').isVisible(), false);
+      await start.click();
+      assert.deepEqual(await page.locator('[data-share-target="link"]').evaluateAll(elements => elements.map(element => element.value)), links, 'Start does not reset an existing draw');
+      assert.equal(await page.locator('#results-title').evaluate(element => element === document.activeElement), true);
+      assert.equal(await page.evaluate(() => localStorage.getItem('secretsanta.saved.v1')), null);
+
+      await page.goto(links[0]);
+      await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
+      assert.equal(await page.locator('.site-header').isVisible(), false, 'Guests skip the organiser hero');
+      assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '');
+      const reveal = page.locator('[data-invitation-target="reveal"]');
+      assert.equal(await reveal.evaluate(element => {
+        const box = element.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }), true, 'Reveal is visible on the first mobile screen');
+      const invitationUrl = page.url();
+      await chooseLanguage(page, locale === 'en' ? 'fr' : 'en');
+      assert.equal(page.url(), invitationUrl);
+      assert.equal(await page.locator('.site-header').isVisible(), false);
+      await reveal.click();
+      assert.equal(await page.locator('[data-invitation-target="details"]').isVisible(), true);
+      await page.reload();
+      await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
+      assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '', 'Reload requires an explicit reveal again');
+      await page.evaluate(() => { location.hash = ''; });
+      await page.locator('.site-header').waitFor({ state: 'visible' });
+      assert.equal(await page.locator('[data-invitation-target="details"]').isVisible(), false);
+      assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '', 'Leaving the invitation clears revealed text');
+    }, { locale, viewport: { width: 375, height: 667 } });
+  }
+
+  await check('name entry handles limits, empty lists, and collapsed-field validation', async page => {
+    await open(page);
+    for (let index = 0; index < 2; index++) await page.locator('[data-remove]').first().click();
+    assert.equal(await page.locator('[data-field="name"]').count(), 0);
+    assert.equal(await page.locator('[data-exchange-target="addButton"]').evaluate(element => element === document.activeElement), true);
+    await page.locator('[data-page-target="start"]').click();
+    assert.equal(await page.locator('[data-exchange-target="addButton"]').evaluate(element => element === document.activeElement), true);
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    for (let index = 2; index < 50; index++) await page.locator('[data-exchange-target="addButton"]').click();
+    const names = page.locator('[data-field="name"]');
+    await names.last().fill('Last person');
+    await names.last().press('Enter');
+    assert.equal(await names.count(), 50);
+    assert.equal(await page.locator('[data-exchange-target="error"]').isVisible(), true);
+    assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    await fillPeople(page, ['Alice', 'Bruno']);
+    await page.locator('[data-i18n="form.options"]').click();
+    await page.locator('#exchange-name').fill('');
+    await page.locator('[data-i18n="form.options"]').click();
+    await page.locator('button[type="submit"]').click();
+    assert.equal(await page.locator('#exchange-name').isVisible(), true, 'Native invalid fields expand their details');
+    assert.equal(await page.locator('#exchange-name').evaluate(element => element === document.activeElement), true);
+    assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
+    await page.locator('#exchange-name').fill('Test exchange');
+    await page.locator('[data-exchange-target="addButton"]').click();
+    await page.locator('.hint-details summary').last().click();
+    await page.locator('[data-field="hint"]').last().fill('Keep this hint');
+    await page.locator('button[type="submit"]').click();
+    assert.equal(await names.count(), 3, 'An unnamed person with a hint is never discarded');
+    assert.equal(await page.locator('[data-field="hint"]').last().inputValue(), 'Keep this hint');
+    assert.equal(await page.locator('[data-exchange-target="results"]').isVisible(), false);
+    await page.locator('[data-field="hint"]').last().fill('');
+    await page.locator('[data-i18n="form.exclusions"]').click();
+    await page.locator('#excluded-giver').selectOption({ index: 3 });
+    await page.locator('#excluded-recipient').selectOption({ index: 1 });
+    await page.locator('[data-action="exchange#addRule"]').click();
+    await page.locator('button[type="submit"]').click();
+    assert.equal(await names.count(), 3, 'An unnamed person referenced by an exclusion is never discarded');
+    assert.equal(await page.locator('.rules li').count(), 1);
+  });
+
   await check('mobile draw, private reveal, save/restore/delete, redraw confirmation', async page => {
     await open(page);
     await fillPeople(page);
@@ -189,6 +310,7 @@ try {
     assert.match(await page.locator('noscript').textContent(), /JavaScript is required/);
     assert.equal(await page.locator('[data-exchange-target="controls"]').getAttribute('disabled'), '');
     assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
+    assert.equal(await page.locator('[data-page-target="start"]').isDisabled(), true);
   }, { javaScriptEnabled: false }, true);
 
   await check('failed initialization keeps controls disabled and a visible explanation', async page => {
@@ -198,6 +320,7 @@ try {
     assert.equal(await page.locator('#startup').isVisible(), true);
     assert.equal(await page.locator('[data-exchange-target="storageButton"]').first().isDisabled(), true);
     assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
+    assert.equal(await page.locator('[data-page-target="start"]').isDisabled(), true);
   }, {}, true);
 
   await check('Portuguese detection and live language switching preserve the draw and reveal', async page => {
@@ -206,10 +329,10 @@ try {
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Nosso Amigo Secreto');
     await chooseLanguage(page, 'fr');
     assert.equal(await page.locator('#exchange-name').inputValue(), 'Notre Père Noël secret');
+    await page.locator('[data-i18n="form.options"]').click();
     await page.locator('#exchange-name').fill('Natal em família');
     await page.locator('[data-field="name"]').nth(0).fill('Maël');
     await page.locator('[data-field="name"]').nth(1).fill('João');
-    await page.locator('[data-i18n="form.options"]').click();
     await page.locator('#date').fill('2026-12-25');
     await page.locator('#budget').fill('R$ 50');
     await page.locator('button[type="submit"]').click();
