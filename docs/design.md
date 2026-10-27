@@ -6,7 +6,7 @@ The house illustration includes Santa's sleigh and reindeer. A small Nativity wi
 
 Snow and lights are pointer-transparent and hidden from assistive technology. They sit behind the content; paper panels keep snow away from inputs and text. Animations are slow, with no flashing or sound. They run automatically, with no in-app toggle or motion storage. `prefers-reduced-motion` disables all effects and is followed when the system setting changes. Old motion preferences are ignored without reading, writing, or deleting browser storage. No-JS content starts with effects paused.
 
-The main form uses familiar native controls, visible focus, and a cream reading surface. Names use compact rows in one column; invitation cards use two columns on desktop and stack on phones. All static art and icons are precached, with the worker version bumped for this release.
+The main form uses familiar native controls, visible focus, and a cream reading surface. Names and invitation cards use one compact column. All static art, icons, and the display font are precached, with the worker version bumped for this release.
 
 ## Copy and motion follow-up
 
@@ -30,13 +30,23 @@ The earlier native select fix only checked the closed control and popup opening.
 
 ## Simpler first draw
 
-A visible “Start a draw” button sits before the welcome illustration. It focuses the first name without navigating or changing a URL fragment. With an existing draw it focuses the results instead of resetting them. If every name was removed, it focuses the Add button. The CTA remains disabled until organiser initialization succeeds.
+A visible “Start a draw” button sits before the welcome illustration. It focuses the first name with browser auto-scrolling disabled, then explicitly scrolls that input into view without navigating or changing a URL fragment. With an existing draw it focuses and scrolls to the results instead of resetting them. If every name was removed, it reaches the Add button. The CTA remains disabled until organiser initialization succeeds. A close-fitting focus ring replaces the competing input and row outlines.
 
-The mobile illustration is smaller. Setup starts with compact name rows; gift hints and exchange details stay collapsed. The exchange name retains its translated default inside optional details. Enter moves to the next name or adds a row; IME confirmation and Enter in gift hints keep their normal behaviour. Draw discards only unused trailing rows beyond the first two, never a row with a hint or an exclusion. Removing someone focuses the neighbouring name or Add button. Native validation opens collapsed details before focusing an invalid field.
+The mobile illustration is smaller. Setup starts with compact name rows; gift hints and exchange details stay collapsed. An expanded participant gets a subtle warm background and extra space below the hint, keeping it visually separate from the next person's name. Input columns stay aligned, and collapsed rows remain compact. The exchange name retains its translated default inside optional details. Enter moves to the next name or adds a row; IME confirmation and Enter in gift hints keep their normal behaviour. Draw discards only unused trailing rows beyond the first two, never a row with a hint or an exclusion. Removing someone focuses the neighbouring name or Add button. Native validation opens collapsed details before focusing an invalid field.
 
 Local saving is still explicit and optional, below the form/results. Repeated setup headings, the numbered instruction strip, and duplicate footer copy are removed. Essential sharing, redraw, local-storage, and update warnings remain. Completed results replace the setup heading; returning to edit restores it.
 
 Invitation links hide the organiser welcome and open on a compact, personalised invitation with the existing gift icon, a short privacy reminder, and the reveal button. The generic title and metadata stay unchanged. Routing and language changes preserve the invitation fragment, and recipients remain absent until an explicit reveal. Leaving the invitation clears revealed text, including when Stimulus disconnects after its controller attribute is removed. New envelope artwork, sharing-card changes, couple exclusions, and bulk entry are outside this pass.
+
+## Single-view desktop workspace
+
+The welcome and existing house illustration sit beside the form at desktop widths (960px and above), taking layout inspiration from the reference app without copying its artwork or code. The starter form and compact footer fit at 1366 × 768px and 1440 × 900px in all 3 languages. The action reads “Match everyone” in English, with natural French and Portuguese equivalents. The solver still generates directed giver-to-recipient assignments, not necessarily reciprocal pairs.
+
+Both columns are top-aligned. Expanding a hint or settings grows the form downward without recentering the welcome column. Stable root scrollbar space avoids sideways jumps when page scrolling becomes necessary. There are no maximum heights or nested scrolling areas on the form, participant list, or expanded hints. Larger groups, open settings, short screens, and enlarged text use normal document scrolling. Mobile uses a compact welcome with a small illustration above the form. Offline/install/privacy utilities remain available in a quieter footer.
+
+## Festive typography
+
+Berkshire Swash adds calligraphic Christmas character to headings, the wordmark, and primary buttons. Names, inputs, and supporting text retain system fonts for readability. The unmodified 58,400-byte font is locally hosted at a pinned upstream revision, with its SIL Open Font License retained in `apps/web/fonts/OFL.txt`. A local preload, `font-display: swap`, and serif fallbacks keep the interface usable while it loads. There are no Google Fonts or other third-party font requests. The font includes French and Portuguese accents and is precached for offline use.
 
 ## Review snapshots
 
@@ -45,6 +55,8 @@ Invitation links hide the organiser welcome and open on a compact, personalised 
 - [Open French language picker, 375 × 667px](screenshots/language-open.webp)
 - [Compact mobile name entry](screenshots/name-entry.webp)
 - [Participant invitation, 375 × 667px](screenshots/invitation.webp)
+- [Starter desktop workspace, 1366 × 768px](screenshots/workspace.webp)
+- [Expanded hints without capped scrolling or recentering](screenshots/expanded.webp)
 
 Screenshot tooling temporarily freezes effects for organiser and participant captures; the app itself keeps automatic motion. The open-picker snapshot keeps effects running. Names in the participant snapshot are test fixtures. These review assets are not precached.
 

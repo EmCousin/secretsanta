@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 let release = 0;
 let failInstall = false;
 const requested = [];
-const types = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+const types = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.ttf': 'font/ttf', '.webmanifest': 'application/manifest+json' };
 const server = createServer(async (request, response) => {
   requested.push(request.url);
   try {
@@ -75,6 +75,7 @@ try {
       await context.setOffline(true);
       await page.reload();
       await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+      assert.equal(await page.evaluate(async () => (await document.fonts.load('32px "Berkshire Swash"', 'Noël João')).length === 1), true, 'The festive font loads offline');
       await page.locator('[data-i18n="storage.summary"]').click();
       await page.locator('[data-action="exchange#restore"]').click();
       assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), originalLink);

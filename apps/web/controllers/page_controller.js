@@ -32,7 +32,11 @@ export default class extends Controller {
     const destination = results.hidden
       ? this.organiserTarget.querySelector('[data-field="name"]') || this.organiserTarget.querySelector('[data-exchange-target="addButton"]')
       : this.organiserTarget.querySelector('#results-title');
-    destination?.focus();
+    if (!destination) return;
+    // Focus alone scrolls inconsistently across browsers and nested scroll areas.
+    // Keep the fragment intact and position the actual control immediately.
+    destination.focus({ preventScroll: true });
+    destination.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
   }
 
   skip() {

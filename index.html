@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="referrer" content="no-referrer">
     <meta name="description" data-i18n-content="app.description" content="Draw names and share Secret Santa invitations. No accounts or installation.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
     <meta name="theme-color" content="#103e35">
     <title data-i18n="app.title">Secret Santa</title>
     <link rel="icon" href="./apps/web/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="apple-touch-icon" href="./apps/web/icons/apple-touch-icon.png">
     <link rel="stylesheet" href="./apps/web/styles.css">
+    <link rel="preload" href="./apps/web/fonts/BerkshireSwash-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <script type="module" src="./apps/web/app.js"></script>
   </head>
   <body data-controller="festivity page" data-motion="paused" data-action="hashchange@window->page#route exchange:ready->page#ready invitation:ready->page#ready">
@@ -39,6 +40,7 @@
         </div>
       </div>
     </div>
+    <div class="app-layout">
     <header class="site-header" data-page-target="welcome">
       <div class="hero-copy">
         <h1 data-i18n="app.title">Secret Santa</h1>
@@ -72,7 +74,7 @@
         <form data-exchange-target="form" data-action="submit->exchange#draw:prevent invalid->exchange#showInvalid:capture">
           <fieldset disabled data-exchange-target="controls">
             <legend class="sr-only" data-i18n="form.legend">Create your exchange</legend>
-            <div class="people" data-exchange-target="people"></div>
+            <div class="people" role="group" aria-label="Names" data-i18n-aria-label="form.people" data-exchange-target="people"></div>
             <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
 
             <details class="optional">
@@ -99,7 +101,7 @@
               <ul class="rules" data-exchange-target="rules"></ul>
             </details>
             <div class="draw-action">
-              <button class="primary" type="submit" data-action="exchange#prepareDraw" data-i18n="form.draw">Draw names</button>
+              <button class="primary" type="submit" data-action="exchange#prepareDraw" data-i18n="form.draw">Match everyone</button>
               <p class="help" data-i18n="form.drawHelp">The draw happens on your device. Nothing is saved automatically.</p>
             </div>
           </fieldset>
@@ -109,7 +111,7 @@
           <h2 id="results-title" tabindex="-1" data-i18n="results.title" data-exchange-target="resultHeading">Your invitations are ready.</h2>
           <p data-i18n="results.intro">Send each link only to the person named on its card.</p>
           <p class="notice" data-i18n="results.notice">Anyone with a link can reveal that person's assignment. We can't check delivery, recover lost links, or revoke old invitations.</p>
-          <div class="invitation-cards" data-exchange-target="cards"></div>
+          <div class="invitation-cards" role="group" aria-label="Invitations" data-i18n-aria-label="results.list" data-exchange-target="cards"></div>
           <button type="button" class="quiet" data-i18n="results.edit" data-action="exchange#requestEdit">Edit and draw again</button>
         </section>
 
@@ -177,6 +179,7 @@
         <p><a href="./" data-i18n="participant.newExchange">Create your own exchange</a></p>
       </section>
     </main>
+    </div>
     <footer>
       <section class="offline-panel" hidden data-controller="pwa" data-action="locale:changed@document->pwa#localize online@window->pwa#localize offline@window->pwa#localize" aria-label="Offline access" data-i18n-aria-label="pwa.label">
         <p role="status" aria-live="polite" data-pwa-target="status">Preparing offline access…</p>

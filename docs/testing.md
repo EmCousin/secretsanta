@@ -29,6 +29,10 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] Complete a draw on a narrow phone and desktop, including exclusions and optional gift hints.
 - [ ] The welcome artwork has no caption in any language; the house, Nativity, and star remain visible.
 - [ ] On the first mobile screen, use Start a draw to reach the first name. With existing results, verify it returns to those results without redrawing or changing links.
+- [ ] Check the actual first input is on-screen after the CTA, not merely focused. Test short mobile viewports, long groups, and a scrolled page. The focus ring should not compete with a second row outline.
+- [ ] On desktop, welcome and setup sit side by side. Opening both gift hints or settings must not recenter either column or shift them sideways when the page scrollbar appears. Expanded content and long groups grow naturally, with no capped form/list scrollbars.
+- [ ] An expanded hint is visibly grouped with its own participant, with clear spacing before the next name. Collapsed rows stay compact and name input columns stay aligned.
+- [ ] Check festive headings/buttons and French/Portuguese accents, online and offline. Form entries must stay easy to read, and the app must remain usable with a serif fallback if its local font is blocked.
 - [ ] Enter advances name entry, never draws; verify mobile Next keyboards and East Asian IME confirmation. Remove a middle/last/all participant and check focus. An unused trailing row can be ignored on Draw, but a row with a hint or exclusion must be kept.
 - [ ] Clear the optional exchange name, close its details, and draw. Native validation should reopen the section and focus the field.
 - [ ] Open an invitation in a fresh mobile tab. The organiser hero is absent and the reveal action is easy to reach. Check malformed links, language changes, reload before/after reveal, and back/forward fragment navigation without stale revealed text.
@@ -60,7 +64,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 
 ## Localisation verification
 
-29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 16 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, blocked preference storage, and the simpler entry flow in all 3 languages. Physical-device and native-speaker review remain recommended.
+29 Node checks cover catalogue/interpolation parity, locale negotiation, stable error codes, and calendar-safe date formatting. The browser script now has 23 scenarios, including pt-BR detection, live switching without changing data or revealing assignments, persistent preferences, unsupported-language fallback, blocked preference storage, and the simpler entry flow in all 3 languages. Physical-device and native-speaker review remain recommended.
 
 ## Offline verification
 
@@ -70,7 +74,7 @@ The Node suite now has 34 tests, including complete precache coverage, manifest/
 PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/pwa-smoke.mjs
 ```
 
-This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 16 normal UI browser scenarios also pass with worker registration enabled.
+This starts and closes its own temporary loopback-only static server. Six real service-worker scenarios pass in Chromium: offline reload/save/restore/new draw/new invitation/language switching and local font loading, consent before update with unrelated caches preserved, and an interrupted update leaving the previous release usable. Each is repeated at `/` and `/party/`. It checks that no invitation payload appears in HTTP requests or cache keys. The 23 normal UI browser scenarios also pass with worker registration enabled.
 
 Manual follow-ups: first-install failure UI, actual OS installation menus, iOS standalone mode, browser cache eviction, multiple long-lived tabs, and device-native sharing still need real-device verification.
 
@@ -89,7 +93,7 @@ npm install --prefix /tmp/opencode/secretsanta-browser --no-save --package-lock=
 BASE_URL=http://localhost:8000/ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/index.mjs AXE_MODULE=/tmp/opencode/secretsanta-browser/node_modules/@axe-core/playwright/dist/index.mjs CHROMIUM_PATH=/usr/bin/chromium node scripts/accessibility-smoke.mjs
 ```
 
-18 axe WCAG A/AA scenarios pass: 6 UI states in each language, including expanded form options, the open language picker, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Screen-reader review and physical devices remain required manual follow-ups. The 35 Node tests, 16 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art included in offline caching.
+18 axe WCAG A/AA scenarios pass: 6 UI states in each language, including expanded form options, the open language picker, results, modal confirmation, invitation guard, and revealed assignment. No automated violations were reported. Screen-reader review and physical devices remain required manual follow-ups. The 36 Node tests, 23 UI scenarios, and 6 real-worker scenarios also pass with the Christmas art and font included in offline caching.
 
 The copy/motion follow-up adds an English HTML/catalogue synchronisation check. The design scenarios verify that the sleigh, smoke, windows, star, and snowflakes have running animation timelines by default. They test live reduced-motion changes and verify that entry effects never leave invitation cards hidden. A legacy paused setting is seeded while storage methods are instrumented: it must have no effect, and motion must never read, write, or delete storage. Updated desktop/mobile screenshots were inspected, and the illustration layers are included in the offline coverage check.
 
@@ -99,6 +103,8 @@ Alignment checks measure the vertical centres of each native radio, local flag/g
 
 ## Simpler-entry verification
 
-The 16 UI scenarios include first-screen CTA visibility at 375 × 667px in en/fr/pt-BR, focus without navigation, compact rows, Enter/empty Enter, synthetic IME confirmation, hint newlines, neighbour focus, safe trailing-row removal, a 50-person limit, removing all names, and native validation of collapsed fields. They verify the CTA preserves completed invitation links and no draw is saved automatically. Invitation cases check first-screen reveal visibility, hidden organiser welcome, generic metadata, no recipient before reveal or after reload, language switching, and clearing revealed text when leaving the route. Physical mobile keyboards and real IME behaviour remain manual checks.
+The 23 UI scenarios include first-screen CTA visibility at 375 × 667px in en/fr/pt-BR, focus and visible input bounds without navigation, compact rows, Enter/empty Enter, synthetic IME confirmation, hint newlines, neighbour focus, safe trailing-row removal, a 50-person limit, removing all names, and native validation of collapsed fields. They verify the CTA preserves completed invitation links and no draw is saved automatically. Invitation cases check first-screen reveal visibility, hidden organiser welcome, generic metadata, no recipient before reveal or after reload, language switching, and clearing revealed text when leaving the route. Physical mobile keyboards and real IME behaviour remain manual checks.
 
-The design suite has 18 scenarios and the axe suite remains 18. Updated snapshots show the mobile welcome, compact entry, and direct participant entrance. The cache version was bumped; no new runtime dependency or asset was added.
+Six desktop cases verify side-by-side layout and no document or internal scrolling for the starter form at 1366 × 768px and 1440 × 900px, in every language, after font loading. They compare column coordinates before/after expanding both hints, exercise larger groups, verify the single input focus ring, and confirm expanded content and results have no maximum-height clipping. A short 375 × 400px mobile case checks actual scrolling to the first input while preserving the URL and typed names.
+
+The design suite has 18 scenarios and the axe suite remains 18. Updated snapshots show the desktop workspace, mobile welcome, compact entry, and direct participant entrance. A new Node check pins the local font's binary hash and licence; browser checks load accented text, and real-worker scenarios load it offline. The font licence and binary are allowlisted, with a bumped cache release. No runtime build step or remote font dependency was added.

@@ -84,6 +84,6 @@ Updates install a complete new cache before activation. An active page offers an
 
 ## Christmas design
 
-The original local illustration includes a warm Christmas house, Santa's sleigh, and a Nativity scene with Mary, Joseph, the infant Jesus, and the Star of Bethlehem. Evergreen, cranberry, gold, falling snow, and twinkling lights carry through the organiser and participant screens. The visual direction evokes a cosy Christmas film without including movie assets.
+The original local illustration includes a warm Christmas house, Santa's sleigh, and a Nativity scene with Mary, Joseph, the infant Jesus, and the Star of Bethlehem. Evergreen, cranberry, gold, falling snow, and twinkling lights carry through the organiser and participant screens. Desktop welcome and setup sit side by side; expanded fields grow naturally. A locally hosted, pinned Berkshire Swash font adds festive calligraphy to headings and primary buttons, with its upstream licence retained. Form fields keep system fonts for readability. The visual direction evokes a cosy Christmas film without including movie assets.
 
 Animations run automatically, with no in-app toggle or saved motion preference. System reduced-motion settings disable them; the layout and artwork remain complete without animation or JavaScript. No external fonts, media, or audio are loaded. [Design notes and review screenshots](docs/design.md) describe the artwork and accessibility checks.

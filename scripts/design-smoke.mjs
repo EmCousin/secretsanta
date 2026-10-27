@@ -78,6 +78,7 @@ try {
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(base);
         await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+        assert.equal(await page.evaluate(async () => (await document.fonts.load('32px "Berkshire Swash"', 'Noël João François')).length === 1), true, 'Local festive font loads with accented text');
         if (touch) await checkTouchPicker(page, locale, width);
         assert.equal(await page.locator('body').getAttribute('data-motion'), 'playing');
         const moving = await page.locator('.scene-layer, .scene-star, .snow-crystals span').evaluateAll(elements =>

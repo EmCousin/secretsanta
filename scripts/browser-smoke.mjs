@@ -31,6 +31,7 @@ async function check(name, run, options = {}, expectUninitialised = false) {
 async function open(page) {
   await page.goto(base);
   await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+  await page.evaluate(() => document.fonts.ready.then(() => null));
 }
 
 async function fillPeople(page, names = ['Alice', 'Bob', 'Charlie']) {
@@ -41,7 +42,7 @@ async function fillPeople(page, names = ['Alice', 'Bob', 'Charlie']) {
 }
 
 async function drawNames(page) {
-  await page.getByRole('button', { name: 'Draw names', exact: true }).click();
+  await page.getByRole('button', { name: 'Match everyone', exact: true }).click();
   await page.locator('[data-exchange-target="results"]:visible').waitFor();
 }
 
@@ -64,6 +65,10 @@ try {
       assert.equal(page.url(), originalUrl, 'Start does not replace fragments or navigate');
       const names = page.locator('[data-field="name"]');
       assert.equal(await names.first().evaluate(element => element === document.activeElement), true);
+      assert.equal(await names.first().evaluate(element => {
+        const box = element.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }), true, 'CTA brings the actual input into the visible viewport');
       assert.equal(await page.locator('.person-row').first().evaluate(element => element.getBoundingClientRect().height < 120), true, 'Name rows are compact');
       await names.first().fill('Alice');
       await names.first().press('Enter');
@@ -121,6 +126,104 @@ try {
       assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '', 'Leaving the invitation clears revealed text');
     }, { locale, viewport: { width: 375, height: 667 } });
   }
+
+  for (const locale of ['en', 'fr', 'pt-BR']) {
+    for (const [width, height] of [[1366, 768], [1440, 900]]) {
+      await check(`${locale}/${width} desktop workspace fits without page scrolling`, async page => {
+        await open(page);
+        await page.waitForFunction(preparing => document.querySelector('[data-pwa-target="status"]').textContent !== preparing,
+          new I18n([locale]).t('pwa.preparing'));
+        await page.locator('.people').evaluate(async element => {
+          await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => null)));
+        });
+        assert.equal(await page.locator('main').evaluate(element => {
+          const welcome = document.querySelector('.site-header').getBoundingClientRect();
+          const workspace = element.getBoundingClientRect();
+          return workspace.left > welcome.right && workspace.top < welcome.bottom;
+        }), true, 'Welcome and workspace sit side by side');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Default desktop page fits its viewport');
+        assert.equal(await page.locator('main').evaluate(element => element.scrollHeight <= element.clientHeight + 1), true, 'Starter form does not need internal scrolling either');
+        assert.equal(await page.locator('button[type="submit"]').evaluate(element => element.getBoundingClientRect().bottom <= innerHeight), true);
+        const positions = () => page.locator('.site-header, main').evaluateAll(elements => elements.map(element => {
+          const box = element.getBoundingClientRect();
+          return { top: box.top + scrollY, left: box.left + scrollX };
+        }));
+        const before = await positions();
+        if (locale === 'en' && width === 1366) await page.screenshot({ path: '/tmp/opencode/secretsanta-workspace-1366.png', fullPage: false, animations: 'disabled' });
+        for (const hint of await page.locator('.hint-details summary').all()) {
+          await hint.click();
+          const after = await positions();
+          for (let index = 0; index < before.length; index++) {
+            assert.ok(Math.abs(after[index].top - before[index].top) <= 1, 'Opening hints does not vertically recenter either column');
+            assert.ok(Math.abs(after[index].left - before[index].left) <= 1, 'Scrollbar appearance does not shift the columns sideways');
+          }
+          const row = hint.locator('..').locator('..');
+          assert.equal(await row.evaluate(element => getComputedStyle(element).backgroundColor !== 'rgba(0, 0, 0, 0)'), true, 'Expanded hints are visually grouped with their participant');
+          assert.equal(await page.locator('[data-field="name"]').evaluateAll(elements => {
+            const left = elements[0].getBoundingClientRect().left;
+            return elements.every(element => Math.abs(element.getBoundingClientRect().left - left) <= 1);
+          }), true, 'Expanded and collapsed participant inputs stay aligned');
+          assert.equal(await row.evaluate(element => {
+            const next = element.nextElementSibling;
+            if (!next) return true;
+            const hint = element.querySelector('[data-field="hint"]').getBoundingClientRect();
+            const name = next.querySelector('[data-field="name"]').getBoundingClientRect();
+            return name.top - hint.bottom >= 24;
+          }), true, 'Expanded hint has breathing room before the next participant name');
+        }
+        if (locale === 'en' && width === 1366) await page.screenshot({ path: '/tmp/opencode/secretsanta-workspace-expanded.png', fullPage: true, animations: 'disabled' });
+        for (const hint of await page.locator('.hint-details summary').all()) await hint.click();
+        const names = page.locator('[data-field="name"]');
+        await names.nth(0).fill('Alice');
+        await names.nth(1).fill('Bruno');
+        for (let index = 2; index < 8; index++) {
+          await page.locator('[data-exchange-target="addButton"]').click();
+          await names.nth(index).fill(`Person ${index + 1}`);
+        }
+        assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Large groups grow naturally, without a capped name list');
+        await page.locator('[data-page-target="start"]').click();
+        assert.equal(await names.first().evaluate(element => element === document.activeElement), true);
+        assert.equal(await page.locator('.people').evaluate(element => element.scrollTop), 0, 'There is no nested name-list scroll position');
+        assert.equal(await names.first().evaluate(element => {
+          const box = element.getBoundingClientRect();
+          const list = element.closest('.people').getBoundingClientRect();
+          return box.top >= list.top && box.bottom <= list.bottom && box.top >= 0 && box.bottom <= innerHeight;
+        }), true);
+        assert.equal(await names.first().evaluate(element => getComputedStyle(element).outlineOffset), '0px', 'Focused input has one close-fitting ring');
+        assert.equal(await page.locator('.person-row').first().evaluate(element => getComputedStyle(element).borderTopStyle), 'none', 'No competing focus border surrounds the row');
+        await page.locator('.hint-details summary').first().click();
+        assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Expanded hints never get clipped inside a capped list');
+        assert.equal(await page.locator('main').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'The expanded form has no internal scrollbar');
+        await page.locator('[data-field="hint"]').first().fill('A warm scarf');
+        await page.locator('button[type="submit"]').click();
+        await page.locator('[data-exchange-target="results"]:visible').waitFor();
+        assert.equal(await page.locator('[data-share-target="link"]').count(), 8);
+        assert.equal(await page.locator('main').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Long results grow naturally instead of being clipped in a fixed-height workspace');
+        await page.locator('.storage-panel summary').click();
+        await page.locator('[data-action="exchange#save"]').click();
+        assert.equal(await page.locator('[data-exchange-target="status"]').isVisible(), true);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      }, { locale, viewport: { width, height } });
+    }
+  }
+
+  await check('CTA explicitly scrolls off-screen inputs on short mobile screens', async page => {
+    await open(page);
+    const first = page.locator('[data-field="name"]').first();
+    assert.ok(await first.evaluate(element => element.getBoundingClientRect().bottom) > 400);
+    const original = page.url();
+    await page.locator('[data-page-target="start"]').click();
+    assert.equal(await first.evaluate(element => element === document.activeElement), true);
+    assert.equal(await first.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= innerHeight;
+    }), true);
+    assert.ok(await page.evaluate(() => scrollY) > 0);
+    assert.equal(page.url(), original);
+    await first.fill('Keep my name');
+    await chooseLanguage(page, 'fr');
+    assert.equal(await first.inputValue(), 'Keep my name');
+  }, { viewport: { width: 375, height: 400 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
 
   await check('name entry handles limits, empty lists, and collapsed-field validation', async page => {
     await open(page);
@@ -212,7 +315,7 @@ try {
     await page.getByLabel('This person', { exact: true }).selectOption({ label: 'Alice' });
     await page.getByLabel('should not draw', { exact: true }).selectOption({ label: 'Bob' });
     await page.getByRole('button', { name: 'Add exclusion', exact: true }).click();
-    await page.getByRole('button', { name: 'Draw names', exact: true }).click();
+    await page.getByRole('button', { name: 'Match everyone', exact: true }).click();
     await page.locator('[data-exchange-target="error"]:visible').waitFor();
     assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /no possible draw/);
     await page.getByRole('button', { name: 'Remove exclusion:', exact: false }).click();
@@ -306,7 +409,7 @@ try {
 
   await check('JavaScript-disabled view explains the requirement and disables controls', async page => {
     await page.goto(base);
-    assert.equal(await page.getByRole('button', { name: 'Draw names', exact: true }).isDisabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Match everyone', exact: true }).isDisabled(), true);
     assert.match(await page.locator('noscript').textContent(), /JavaScript is required/);
     assert.equal(await page.locator('[data-exchange-target="controls"]').getAttribute('disabled'), '');
     assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
@@ -316,7 +419,7 @@ try {
   await check('failed initialization keeps controls disabled and a visible explanation', async page => {
     await page.route('**/apps/web/app.js', route => route.fulfill({ contentType: 'text/javascript', body: '// Application did not initialize.' }));
     await page.goto(base);
-    assert.equal(await page.getByRole('button', { name: 'Draw names', exact: true }).isDisabled(), true);
+    assert.equal(await page.getByRole('button', { name: 'Match everyone', exact: true }).isDisabled(), true);
     assert.equal(await page.locator('#startup').isVisible(), true);
     assert.equal(await page.locator('[data-exchange-target="storageButton"]').first().isDisabled(), true);
     assert.equal(await page.locator('[data-locale-target="option"]').first().isDisabled(), true);
