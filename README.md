@@ -37,7 +37,8 @@ The root manifest declares npm workspaces for organisation only. Browser imports
 - [Repository foundation](https://github.com/EmCousin/secretsanta/issues/3)
 - [Draw engine and invitation format](https://github.com/EmCousin/secretsanta/issues/4)
 - [Organiser and participant experience](https://github.com/EmCousin/secretsanta/issues/2)
-- [Remaining reference-app parity](https://github.com/EmCousin/secretsanta/issues/7): forced pairings, bulk entry, export choices, and French localisation remain open follow-ups. This initial app is English only.
+- [Remaining reference-app parity](https://github.com/EmCousin/secretsanta/issues/7): forced pairings, bulk entry, and export choices remain open follow-ups.
+- [Localisation](https://github.com/EmCousin/secretsanta/issues/9): English, French, and Brazilian Portuguese.
 
 Implementation is reviewed through pull requests. Stacked PRs identify their prerequisite and merge order.
 
@@ -56,6 +57,12 @@ Add people, optional gift hints, and directed exclusions. Run the draw and priva
 Saving drafts and invitations is optional. Use **Save or restore on this device** to keep one readable local copy. No data is saved automatically. Deleting the copy does not revoke shared links. Editing a completed exchange requires confirmation; a new draw requires sending everyone new links. There are no delivery receipts or remote updates to gift hints and instructions.
 
 JavaScript is required for local drawing and invitation decoding. Without it, controls remain disabled and an explanation remains visible. Optional sharing, clipboard, and storage features have fallbacks. See [testing instructions and the device checklist](docs/testing.md).
+
+## Languages
+
+The app selects the first supported language in the browser's preference list. English and French regional variants map to `en` and `fr`; Portuguese variants map to Brazilian Portuguese (`pt-BR`). Unsupported lists fall back to English. Choose a language explicitly or return to **Automatic (browser)** using the selector. Only explicit language preferences are remembered, and selection still works when storage is blocked.
+
+Catalogues are local JS modules in `apps/web/i18n`, with English fallback per key. Static HTML stays readable in English if JavaScript fails. Switching language updates labels, templates, dates, errors, sharing copy, and statuses without changing the draw or revealing an assignment. User-written names, hints, budgets, and notes are preserved, not translated. Native browser validation and OS sharing sheets use the browser/OS language. Core errors expose stable codes and parameters; diagnostic English messages and v1 invitation payloads remain compatible.
 
 ## Static hosting
 

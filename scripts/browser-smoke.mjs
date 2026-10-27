@@ -197,5 +197,68 @@ try {
     assert.equal(await page.locator('[data-exchange-target="storageButton"]').first().isDisabled(), true);
   }, {}, true);
 
+  await check('Portuguese detection and live language switching preserve the draw and reveal', async page => {
+    await open(page);
+    assert.equal(await page.locator('html').getAttribute('lang'), 'pt-BR');
+    assert.equal(await page.locator('#exchange-name').inputValue(), 'Nosso Amigo Secreto');
+    await page.locator('#language').selectOption('fr');
+    assert.equal(await page.locator('#exchange-name').inputValue(), 'Notre Père Noël secret');
+    await page.locator('#exchange-name').fill('Natal em família');
+    await page.locator('[data-field="name"]').nth(0).fill('Maël');
+    await page.locator('[data-field="name"]').nth(1).fill('João');
+    await page.locator('[data-i18n="form.options"]').click();
+    await page.locator('#date').fill('2026-12-25');
+    await page.locator('#budget').fill('R$ 50');
+    await page.locator('button[type="submit"]').click();
+    const link = await page.locator('[data-share-target="link"]').first().inputValue();
+    await page.locator('#language').selectOption('en');
+    assert.equal(await page.locator('[data-share-target="link"]').first().inputValue(), link);
+    assert.equal(await page.locator('#exchange-name').inputValue(), 'Natal em família');
+    assert.match(await page.locator('.invitation-card h3').first().textContent(), /Invitation for Maël/);
+    await page.goto(link);
+    await page.locator('[data-invitation-target="reveal"]:enabled').waitFor();
+    await page.locator('#language').selectOption('pt-BR');
+    assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), '');
+    await page.locator('[data-invitation-target="reveal"]').click();
+    assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
+    assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 de dezembro de 2026/);
+    await page.locator('#language').selectOption('fr');
+    assert.equal(await page.locator('[data-invitation-target="recipient"]').textContent(), 'João');
+    assert.equal(await page.locator('[data-invitation-target="exchange"]').textContent(), 'Natal em família');
+    assert.match(await page.locator('[data-invitation-target="date"]').textContent(), /25 décembre 2026/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  }, { locale: 'pt-BR', viewport: { width: 320, height: 740 } });
+
+  await check('unsupported languages fall back to English and explicit preferences persist', async page => {
+    await open(page);
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    await page.locator('#language').selectOption('fr');
+    await page.reload();
+    await page.locator('[data-exchange-target="controls"]:enabled').waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'), 'fr');
+    await page.locator('#language').selectOption('');
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    assert.equal(await page.evaluate(() => localStorage.getItem('secretsanta.language')), null);
+  }, { locale: 'de-DE' });
+
+  await check('French errors and Portuguese switching work when preference storage is blocked', async (page, context) => {
+    await context.addInitScript(() => {
+      for (const method of ['getItem', 'setItem', 'removeItem']) Storage.prototype[method] = () => { throw new Error('Blocked'); };
+    });
+    await open(page);
+    await page.locator('[data-field="name"]').nth(0).fill('Alice');
+    await page.locator('[data-field="name"]').nth(1).fill('alice');
+    await page.locator('button[type="submit"]').click();
+    assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /noms distincts/);
+    await page.locator('#language').selectOption('pt-BR');
+    assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /nomes diferentes/);
+    await page.goto(`${base}#santa=1.bad`);
+    await page.locator('[data-invitation-target="error"]:visible').waitFor();
+    assert.match(await page.locator('[data-invitation-target="error"]').textContent(), /incompleto ou danificado/);
+    await page.reload();
+    await page.locator('[data-invitation-target="error"]:visible').waitFor();
+    assert.match(await page.locator('[data-invitation-target="error"]').textContent(), /incomplète ou endommagée/);
+  }, { locale: 'fr-FR' });
+
   console.log(`${checks} browser scenarios passed.`);
 } finally { await browser.close(); }

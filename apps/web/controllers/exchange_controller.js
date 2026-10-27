@@ -3,6 +3,7 @@ import { SecretSantaDraw } from '../../../packages/core/draw.js';
 import { Invitation } from '../../../packages/core/invitations.js';
 import { validateParticipants, validateExchange, ValidationError } from '../../../packages/core/validation.js';
 import { saveCopy, restoreCopy, deleteCopy } from '../storage.js';
+import { i18n } from '../localization.js';
 
 export default class extends Controller {
   static targets = ['controls', 'storageButton', 'form', 'people', 'personTemplate', 'ruleTemplate', 'rules', 'giver', 'recipient', 'name', 'budget', 'date', 'instructions', 'error', 'status', 'results', 'cards', 'cardTemplate', 'resultHeading', 'confirm'];
@@ -18,7 +19,7 @@ export default class extends Controller {
   }
 
   addPerson(event, person) {
-    if (this.peopleTarget.children.length >= 50) return this.fail('You can add up to 50 people.');
+    if (this.peopleTarget.children.length >= 50) return this.fail('people.limit');
     const row = this.personTemplateTarget.content.firstElementChild.cloneNode(true);
     row.dataset.personId = person?.id ?? crypto.randomUUID();
     for (const field of ['name', 'hint']) {
@@ -52,13 +53,13 @@ export default class extends Controller {
     const people = this.readPeople();
     for (const select of [this.giverTarget, this.recipientTarget]) {
       const previous = select.value;
-      select.replaceChildren(new Option('Choose a person', ''));
-      for (const [i, person] of people.entries()) select.add(new Option(person.name.trim() || `Person ${i + 1}`, person.id));
+      select.replaceChildren(new Option(i18n.t('form.choosePerson'), ''));
+      for (const [i, person] of people.entries()) select.add(new Option(person.name.trim() || i18n.t('people.person', { number: i + 1 }), person.id));
       if (people.some(person => person.id === previous)) select.value = previous;
     }
     for (const [i, row] of [...this.peopleTarget.children].entries()) {
-      row.querySelector('[data-person-number]').textContent = `Person ${i + 1}`;
-      row.querySelector('[data-remove]').setAttribute('aria-label', `Remove ${people[i].name.trim() || `person ${i + 1}`}`);
+      row.querySelector('[data-person-number]').textContent = i18n.t('people.person', { number: i + 1 });
+      row.querySelector('[data-remove]').setAttribute('aria-label', i18n.t('people.remove', { name: people[i].name.trim() || i18n.t('people.person', { number: i + 1 }) }));
     }
     this.renderRules();
   }
@@ -66,13 +67,13 @@ export default class extends Controller {
   addRule() {
     const giverId = this.giverTarget.value;
     const recipientId = this.recipientTarget.value;
-    if (!giverId || !recipientId) return this.fail('Choose both people for the exclusion.');
-    if (giverId === recipientId) return this.fail('Nobody can draw themselves. You do not need to add that exclusion.');
-    if (this.exclusions.some(rule => rule.giverId === giverId && rule.recipientId === recipientId)) return this.fail('That exclusion is already in the list.');
+    if (!giverId || !recipientId) return this.fail('people.chooseBoth');
+    if (giverId === recipientId) return this.fail('people.self');
+    if (this.exclusions.some(rule => rule.giverId === giverId && rule.recipientId === recipientId)) return this.fail('validation.duplicateRule');
     this.exclusions.push({ giverId, recipientId });
     this.errorTarget.hidden = true;
     this.renderRules();
-    this.say('Exclusion added.');
+    this.say('status.exclusionAdded');
   }
 
   renderRules() {
@@ -80,11 +81,14 @@ export default class extends Controller {
     this.rulesTarget.replaceChildren();
     for (const [index, rule] of this.exclusions.entries()) {
       const row = this.ruleTemplateTarget.content.firstElementChild.cloneNode(true);
-      const label = `${people.find(person => person.id === rule.giverId)?.name.trim() || 'Unnamed person'} should not draw ${people.find(person => person.id === rule.recipientId)?.name.trim() || 'unnamed person'}`;
+      const label = i18n.t('people.exclusion', {
+        giver: people.find(person => person.id === rule.giverId)?.name.trim() || i18n.t('people.unnamed'),
+        recipient: people.find(person => person.id === rule.recipientId)?.name.trim() || i18n.t('people.unnamed'),
+      });
       row.querySelector('span').textContent = label;
       const button = row.querySelector('button');
       button.dataset.exchangeIndexParam = index;
-      button.setAttribute('aria-label', `Remove exclusion: ${label}`);
+      button.setAttribute('aria-label', i18n.t('people.removeExclusion', { rule: label }));
       this.rulesTarget.append(row);
     }
   }
@@ -93,7 +97,7 @@ export default class extends Controller {
     this.exclusions.splice(event.params.index, 1);
     this.renderRules();
     this.giverTarget.focus();
-    this.say('Exclusion removed.');
+    this.say('status.exclusionRemoved');
   }
 
   draft() {
@@ -121,8 +125,8 @@ export default class extends Controller {
         return { giverId, fragment: invitation.toFragment() };
       });
       this.showResults();
-      this.say('The draw is ready. Send each invitation privately. Nothing has been saved automatically.');
-    } catch (error) { this.fail(error.message); }
+      this.say('status.ready');
+    } catch (error) { this.fail(error); }
   }
 
   showResults() {
@@ -132,7 +136,7 @@ export default class extends Controller {
       const card = this.cardTemplateTarget.content.firstElementChild.cloneNode(true);
       const giver = people.get(item.giverId).name.trim();
       card.dataset.shareGiverValue = giver;
-      card.querySelector('h3').textContent = `Invitation for ${giver}`;
+      card.querySelector('h3').textContent = i18n.t('people.invitationFor', { name: giver });
       const input = card.querySelector('input');
       input.id = `link-${item.giverId}`;
       input.value = Invitation.fromFragment(item.fragment).toUrl(location.href);
@@ -154,20 +158,20 @@ export default class extends Controller {
     this.resultsTarget.hidden = true;
     this.formTarget.hidden = false;
     this.nameTarget.focus();
-    this.say('You can edit this exchange. Draw again and send everyone a new invitation. Any saved copy is unchanged until you save again.');
+    this.say('status.edited');
   }
 
   save() {
     try {
       saveCopy({ v: 1, draft: this.draft(), invitations: this.invitations });
-      this.say('Saved on this device. This replaces the previous saved copy. Nothing was uploaded.');
-    } catch (error) { this.say(error instanceof ValidationError ? error.message : 'This browser could not save a copy. Keep your invitation links somewhere safe; you can still use and share them.'); }
+      this.say('storage.saved');
+    } catch (error) { this.say(error instanceof ValidationError ? error : 'storage.saveFailed'); }
   }
 
   restore() {
     try {
       const saved = restoreCopy();
-      if (!saved) return this.say('There is no saved copy on this device.');
+      if (!saved) return this.say('storage.missing');
       this.peopleTarget.replaceChildren();
       this.exclusions = [];
       for (const person of saved.draft.participants) this.addPerson(null, person);
@@ -183,22 +187,39 @@ export default class extends Controller {
         this.formTarget.hidden = false;
         this.nameTarget.focus();
       }
-      this.say('Saved copy restored. No new draw was made.');
-    } catch (error) { this.say(error instanceof ValidationError ? error.message : 'This browser could not read its saved copy. You can still create a new draw.'); }
+      this.say('storage.restored');
+    } catch (error) { this.say(error instanceof ValidationError ? error : 'storage.restoreFailed'); }
   }
 
   deleteSaved() {
     try {
       deleteCopy();
-      this.say('Saved copy deleted from this device. The exchange on this screen and any shared links still work.');
-    } catch { this.say('This browser could not delete its saved copy. Check your browser storage settings.'); }
+      this.say('storage.deleted');
+    } catch { this.say('storage.deleteFailed'); }
   }
 
-  fail(message) {
-    this.errorTarget.textContent = message;
+  fail(message, params = {}) {
+    this.errorMessage = { message, params };
+    this.errorTarget.textContent = this.messageText(this.errorMessage);
     this.errorTarget.hidden = false;
     this.errorTarget.focus();
   }
 
-  say(message) { this.statusTarget.textContent = message; }
+  say(message, params = {}) {
+    this.statusMessage = { message, params };
+    this.statusTarget.textContent = this.messageText(this.statusMessage);
+  }
+
+  messageText({ message, params }) {
+    return typeof message === 'string' ? i18n.t(message, params) : i18n.error(message);
+  }
+
+  localize() {
+    this.updatePeople();
+    for (const card of this.cardsTarget.children) {
+      card.querySelector('h3').textContent = i18n.t('people.invitationFor', { name: card.dataset.shareGiverValue });
+    }
+    if (this.statusMessage) this.statusTarget.textContent = this.messageText(this.statusMessage);
+    if (this.errorMessage) this.errorTarget.textContent = this.messageText(this.errorMessage);
+  }
 }
