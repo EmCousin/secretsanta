@@ -4,3 +4,6 @@ coverage/
 test-results/
 playwright-report/
 *.log
+apps/android/.gradle/
+apps/android/**/build/
+apps/android/local.properties

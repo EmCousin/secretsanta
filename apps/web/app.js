@@ -8,6 +8,13 @@ import PwaController from './controllers/pwa_controller.js';
 import FestivityController from './controllers/festivity_controller.js';
 import { i18n } from './localization.js';
 
+// Hotwire Native's adapter needs Turbo. Keep normal browser navigation and the
+// single-page form under this app's control rather than intercepting them.
+if (/Hotwire Native (Android|iOS)/.test(navigator.userAgent)) {
+  const turbo = await import('./vendor/turbo.js');
+  turbo.session.drive = false;
+}
+
 const application = Application.start();
 application.register('page', PageController);
 application.register('exchange', ExchangeController);
