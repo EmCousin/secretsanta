@@ -59,7 +59,7 @@ a { color: var(--green); text-underline-offset: .2em; }
 .garland span::before { content: ''; position: absolute; top: -5px; left: 2px; width: 5px; height: 6px; background: #897b43; border-radius: 2px; }
 .garland span:nth-child(3n) { background: #db6a5c; box-shadow: 0 0 12px #dc665b88; animation-delay: -2s; }
 .garland span:nth-child(3n + 1) { animation-delay: -4s; }
-@keyframes twinkle { from { opacity: .7; filter: brightness(.9); } to { opacity: 1; filter: brightness(1.15); } }
+@keyframes twinkle { from { opacity: .7; } to { opacity: 1; } }
 [data-motion="paused"] .ambient-motion { animation-play-state: paused; }
 
 .topbar, .site-header, main, footer { position: relative; z-index: 1; }

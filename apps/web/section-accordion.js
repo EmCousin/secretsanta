@@ -24,7 +24,6 @@ export class SectionAccordion {
 
   height(panel) {
     if (!this.contained.matches) {
-      this.body(panel).style.height = '';
       return this.body(panel).getBoundingClientRect().height;
     }
     const actions = this.root.querySelector('.draw-action');
@@ -45,7 +44,7 @@ export class SectionAccordion {
     this.active = next;
     for (const animation of this.animations.values()) animation.cancel();
     this.animations.clear();
-    const pending = [];
+    const visible = [];
     for (const panel of this.panels) {
       const opening = panel === next;
       const body = this.body(panel);
@@ -55,9 +54,16 @@ export class SectionAccordion {
       if (!opening && body.contains(document.activeElement)) this.summary(panel).focus({ preventScroll: true });
       if (opening) panel.open = true;
       if (!panel.open) continue;
-      const from = heights.get(panel);
-      const to = opening ? this.height(panel) : 0;
       body.classList.remove('is-transitioning');
+      if (opening && !this.contained.matches) body.style.height = '';
+      visible.push({ panel, body, opening, from: heights.get(panel) });
+    }
+
+    // Read target geometry together, then write starting heights together. This
+    // avoids forcing a fresh layout separately for each opening/closing panel.
+    for (const item of visible) item.to = item.opening ? this.height(item.panel) : 0;
+    const transitioning = [];
+    for (const { panel, body, opening, from, to } of visible) {
       if (!animate || this.reduced.matches || from === to) {
         panel.open = opening;
         body.style.height = opening && this.contained.matches ? `${to}px` : '';
@@ -66,10 +72,15 @@ export class SectionAccordion {
       }
       body.style.height = `${from}px`;
       body.style.overflow = 'hidden';
-      // Establish the starting height before applying the CSS transition.
-      void body.offsetHeight;
+      transitioning.push({ panel, body, opening, to });
+    }
+    if (transitioning.length) void this.root.offsetHeight;
+    for (const { body, to } of transitioning) {
       body.classList.add('is-transitioning');
       body.style.height = `${to}px`;
+    }
+    const pending = [];
+    for (const { panel, body, opening, to } of transitioning) {
       const animation = body.getAnimations?.().find(item => item.transitionProperty === 'height');
       if (!animation) {
         panel.open = opening;

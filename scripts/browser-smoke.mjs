@@ -246,6 +246,23 @@ try {
     assert.equal(await page.locator('#settings-body').evaluate(element => element.style.overflow), '', 'Scrolling is restored after the transition');
   }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
 
+  await check('mobile accordion settles after interrupted transitions and motion preference changes', async page => {
+    await open(page);
+    await page.evaluate(() => {
+      document.querySelector('#settings-title').click();
+      document.querySelector('#rules-title').click();
+      document.querySelector('#participants-title').click();
+    });
+    await openPanel(page, 'participants');
+    assert.equal(await page.locator('.workflow-panel[open]').count(), 1);
+    assert.equal(await page.locator('#participants-body').evaluate(element => getComputedStyle(element).overflowY), 'visible');
+    await page.locator('#settings-title').click();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openPanel(page, 'settings');
+    assert.equal(await page.locator('.workflow-panel[open]').count(), 1);
+    assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => !element.getAnimations().length && !element.classList.contains('is-transitioning'))), true);
+  }, { viewport: { width: 390, height: 667 }, reducedMotion: 'no-preference' });
+
   await check('mobile swipes over the beige workspace scroll the page', async page => {
     await open(page);
     for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();
