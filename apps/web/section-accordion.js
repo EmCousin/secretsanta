@@ -5,13 +5,11 @@ export class SectionAccordion {
     this.panels = panels;
     this.active = panels.find(panel => panel.open) || null;
     this.animations = new Map();
-    this.flexCancel = null;
     this.abort = new AbortController();
     this.reduced = matchMedia('(prefers-reduced-motion: reduce)');
     this.contained = matchMedia('(min-width: 960px) and (min-height: 700px)');
-    this.mobile = matchMedia('(max-width: 650px)');
     for (const panel of panels) panel.removeAttribute('name');
-    for (const media of [this.reduced, this.contained, this.mobile]) {
+    for (const media of [this.reduced, this.contained]) {
       media.addEventListener('change', () => this.select(this.active, { animate: false }), { signal: this.abort.signal });
     }
     this.observer = new ResizeObserver(() => {
@@ -42,11 +40,6 @@ export class SectionAccordion {
   }
 
   async select(next, { animate = true } = {}) {
-    this.flexCancel?.();
-    this.flexCancel = null;
-    if (this.mobile.matches && CSS.supports('selector(details::details-content)')) return this.selectFlex(next, animate);
-    this.root.classList.remove('mobile-flex-accordion');
-    this.root.closest('main').classList.remove('mobile-flex-accordion');
     const heights = new Map(this.panels.map(panel => [panel, panel.open ? this.body(panel).getBoundingClientRect().height : 0]));
     this.active = next;
     for (const animation of this.animations.values()) animation.cancel();
@@ -108,39 +101,6 @@ export class SectionAccordion {
     }
     await Promise.all(pending);
     return this.active === next;
-  }
-
-  // Fixed-size mobile workspace: CSS shares the available space using flex-grow.
-  // Keep closing details open until the visual transition has completed.
-  selectFlex(next, animate) {
-    const unchanged = next === this.active && this.panels.every(panel => panel.open === (panel === next));
-    this.active = next;
-    for (const animation of this.animations.values()) animation.cancel();
-    this.animations.clear();
-    this.root.classList.add('mobile-flex-accordion');
-    this.root.closest('main').classList.add('mobile-flex-accordion');
-    for (const panel of this.panels) {
-      const active = panel === next;
-      const body = this.body(panel);
-      this.summary(panel).setAttribute('aria-expanded', String(active));
-      body.inert = !active;
-      if (!active && body.contains(document.activeElement)) this.summary(panel).focus({ preventScroll: true });
-      body.classList.remove('is-transitioning');
-      body.style.height = '';
-      body.style.overflow = '';
-      if (active) panel.open = true;
-      panel.classList.toggle('is-active', active);
-    }
-    const settle = () => { for (const panel of this.panels) panel.open = panel === next; };
-    if (!animate || this.reduced.matches || unchanged) { settle(); return Promise.resolve(true); }
-    return new Promise(resolve => {
-      const timer = setTimeout(() => {
-        settle();
-        this.flexCancel = null;
-        resolve(this.active === next);
-      }, 340);
-      this.flexCancel = () => { clearTimeout(timer); this.flexCancel = null; resolve(false); };
-    });
   }
 
   focusHeader(event) {
