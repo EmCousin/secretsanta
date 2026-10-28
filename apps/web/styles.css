@@ -240,3 +240,17 @@ footer summary { color: #f0dfb4; padding-block: .25rem; }
   .ambient-motion, .person-row, .invitation-card, .reveal-card, .reveal-card::after { animation: none !important; }
   button { transition: none !important; }
 }
+
+/* Reference-style experiment: headers and scrollable bodies are flex siblings. */
+[data-view="organiser"] main { height: max(42rem, 90vh); }
+.workflow-controls { gap: 0; }
+.workflow-panel { display: contents; }
+.workflow-header { display: flex; flex: none; width: 100%; justify-content: space-between; align-items: center; gap: .5rem; min-height: 3rem; margin-bottom: .5rem; padding: .65rem .85rem; border: 0; border-radius: .8rem; background: #eae1cc; color: var(--ink); text-align: left; font: 400 1.3rem/1.25 var(--festive-font); }
+.workflow-header::after { content: ''; flex: 0 0 .45rem; height: .45rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); }
+.is-active > .workflow-header { background: var(--green); color: #fff3d7; }
+.is-active > .workflow-header::after { transform: rotate(45deg); }
+.workflow-body { height: 0; min-height: 0; flex: 0 1 0%; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #b8ad95 transparent; transition: flex 300ms ease-in-out; }
+.is-active > .workflow-body { flex: 1 1 0%; }
+.no-accordion-motion .workflow-body { transition: none; }
+@media (min-width: 960px) and (min-height: 700px) { [data-view="organiser"] main { height: min(40rem, calc(100dvh - 10rem)); } }
+@media (prefers-reduced-motion: reduce) { .workflow-body { transition: none; } }

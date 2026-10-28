@@ -16,11 +16,11 @@ export async function chooseLanguage(page, preference, { touch = false } = {}) {
 
 export async function openPanel(page, name) {
   const panel = page.locator(`[data-exchange-target="${name}Panel"]`);
-  if (!await panel.evaluate(element => element.classList.contains('is-active'))) await panel.locator(':scope > summary').click();
+  if (!await panel.evaluate(element => element.classList.contains('is-active'))) await panel.locator(':scope > .workflow-header').click();
   await page.waitForFunction(name => {
     const panel = document.querySelector(`[data-exchange-target="${name}Panel"]`);
-    return panel.open && panel.classList.contains('is-active') && panel.querySelector('.workflow-body').getAnimations().length === 0
-      && [...document.querySelectorAll('.workflow-panel')].every(other => other === panel || !other.open);
+    return panel.classList.contains('is-active') && panel.querySelector('.workflow-body').getAnimations().length === 0
+      && [...document.querySelectorAll('.workflow-panel')].every(other => other === panel || !other.classList.contains('is-active'));
   }, name);
 }
 
