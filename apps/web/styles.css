@@ -24,7 +24,10 @@
 * { box-sizing: border-box; }
 html { scrollbar-gutter: stable; }
 [hidden] { display: none !important; }
-body { margin: 0; background: radial-gradient(ellipse at 76% 13%, #a7864826, transparent 38%), radial-gradient(ellipse at 5% 48%, #285c50, transparent 45%), linear-gradient(150deg, #173c3a, #245443 55%, #163c34); min-height: 100vh; }
+body { margin: 0; background: #103e35; min-height: 100vh; }
+/* Keep the sky independent of document height: accordion movement should not
+   resize and rasterize three full-page gradients on every animation frame. */
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 76% 13%, #a7864826, transparent 38%), radial-gradient(ellipse at 5% 48%, #285c50, transparent 45%), linear-gradient(150deg, #173c3a, #245443 55%, #163c34); }
 button, input, select, textarea { font: inherit; }
 p { overflow-wrap: anywhere; }
 button { min-height: 2.8rem; padding: .75rem 1.15rem; border: 1px solid #6f8876; border-radius: 1.5rem; background: #fffdf7; color: var(--green); font-weight: 600; cursor: pointer; line-height: 1.4; overflow-wrap: anywhere; }
