@@ -49,7 +49,7 @@ export default class extends Controller {
 
   setEditing(enabled) {
     for (const panel of [this.participantsPanelTarget, this.rulesPanelTarget, this.settingsPanelTarget]) {
-      for (const input of panel.querySelectorAll('.workflow-content input, .workflow-content textarea, .workflow-content select, .workflow-content button')) input.disabled = !enabled;
+      for (const input of panel.querySelectorAll('input, textarea, select, button')) input.disabled = !enabled;
     }
     this.matchActionsTarget.hidden = !enabled;
     this.matchButtonTarget.disabled = !enabled;
