@@ -1,6 +1,6 @@
 // Bump the version whenever any precached runtime file changes. Install the
 // whole release before activation; do not replace a running app without consent.
-const CACHE_VERSION = '2026-10-28-stable-sky-1';
+const CACHE_VERSION = '2026-10-28-instant-mobile-1';
 const SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `secretsanta-shell:${encodeURIComponent(SCOPE.pathname)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;

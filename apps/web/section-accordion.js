@@ -8,6 +8,7 @@ export class SectionAccordion {
     this.abort = new AbortController();
     this.reduced = matchMedia('(prefers-reduced-motion: reduce)');
     this.contained = matchMedia('(min-width: 960px) and (min-height: 700px)');
+    this.mobile = matchMedia('(max-width: 650px)');
     for (const panel of panels) panel.removeAttribute('name');
     for (const media of [this.reduced, this.contained]) {
       media.addEventListener('change', () => this.select(this.active, { animate: false }), { signal: this.abort.signal });
@@ -40,6 +41,9 @@ export class SectionAccordion {
   }
 
   async select(next, { animate = true } = {}) {
+    // Isolate the cost of section motion on mobile without changing the
+    // independent festive animations or desktop behavior.
+    if (this.mobile.matches) animate = false;
     const heights = new Map(this.panels.map(panel => [panel, panel.open ? this.body(panel).getBoundingClientRect().height : 0]));
     this.active = next;
     for (const animation of this.animations.values()) animation.cancel();
