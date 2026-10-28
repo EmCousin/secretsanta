@@ -255,7 +255,7 @@ try {
     });
     await openPanel(page, 'participants');
     assert.equal(await page.locator('.workflow-panel[open]').count(), 1);
-    assert.equal(await page.locator('#participants-body').evaluate(element => getComputedStyle(element).overflowY), 'auto');
+    assert.equal(await page.locator('#participants-body').evaluate(element => getComputedStyle(element).overflowY), 'visible');
     await page.locator('#settings-title').click();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openPanel(page, 'settings');
@@ -263,27 +263,22 @@ try {
     assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => !element.getAnimations().length && !element.classList.contains('is-transitioning'))), true);
   }, { viewport: { width: 390, height: 667 }, reducedMotion: 'no-preference' });
 
-  await check('mobile flex panel scrolls and chains to the page at its edge', async page => {
+  await check('mobile swipes over the beige workspace scroll the page', async page => {
     await open(page);
     for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();
     const body = page.locator('#participants-body');
-    assert.equal(await body.evaluate(element => getComputedStyle(element).overflowY), 'auto');
-    await page.evaluate(() => { document.body.style.minHeight = '180vh'; window.scrollTo(0, document.querySelector('main').offsetTop); });
+    assert.equal(await body.evaluate(element => getComputedStyle(element).overflowY), 'visible');
+    await page.evaluate(() => window.scrollTo(0, document.querySelector('main').offsetTop));
+    const before = await page.evaluate(() => window.scrollY);
     const box = await body.boundingBox();
     const x = box.x + box.width - 12;
-    const y = box.y + box.height / 2;
-    await body.evaluate(element => { element.scrollTop = 0; });
+    const y = Math.min(570, Math.max(300, box.y + 180));
     const session = await page.context().newCDPSession(page);
     await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
     for (let offset = 30; offset <= 210; offset += 30) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - offset }] });
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await page.waitForFunction(() => document.querySelector('#participants-body').scrollTop > 20);
-    await body.evaluate(element => { element.scrollTop = element.scrollHeight; });
-    const before = await page.evaluate(() => window.scrollY);
-    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
-    for (let offset = 30; offset <= 210; offset += 30) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - offset }] });
-    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await page.waitForFunction(start => window.scrollY > start + 20, before);
+    assert.equal(await body.evaluate(element => element.scrollTop), 0, 'Mobile has no nested participant scroller');
     await session.detach();
   }, { viewport: { width: 390, height: 667 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
 
