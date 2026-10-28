@@ -248,6 +248,10 @@ try {
 
   await check('mobile accordion settles after interrupted transitions and motion preference changes', async page => {
     await open(page);
+    await page.locator('#settings-title').click();
+    assert.equal(await page.locator('#settings-body').evaluate(element => element.getAnimations().length), 0, 'Mobile section switches are instant');
+    assert.equal(await page.locator('.snow-layer').first().evaluate(element => getComputedStyle(element).animationName), 'snowfall', 'Snow continues while section transitions are disabled');
+    assert.equal(await page.locator('.scene-sleigh').evaluate(element => getComputedStyle(element).animationName), 'sleigh-drift', 'Santa continues while section transitions are disabled');
     await page.evaluate(() => {
       document.querySelector('#settings-title').click();
       document.querySelector('#rules-title').click();
