@@ -71,16 +71,16 @@
         <form data-exchange-target="form" data-action="submit->exchange#draw:prevent invalid->exchange#showInvalid:capture">
           <fieldset class="workflow-controls" disabled data-exchange-target="controls">
             <legend class="sr-only" data-i18n="form.legend">Create your exchange</legend>
-            <details class="workflow-panel" name="exchange-panels" open data-exchange-target="participantsPanel">
-              <summary id="participants-title" aria-controls="participants-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.participants">Participants</span></summary>
+            <div class="workflow-panel is-active" data-exchange-target="participantsPanel">
+              <button type="button" class="workflow-header" id="participants-title" aria-controls="participants-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.participants">Participants</span></button>
               <div id="participants-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="participants-title"><div class="workflow-content">
                 <p class="help" data-i18n="form.peopleHelp">At least 2 people. Nobody draws themselves.</p>
                 <div class="people" role="group" aria-label="Names" data-i18n-aria-label="form.people" data-exchange-target="people"></div>
                 <button type="button" data-i18n="form.addPerson" data-exchange-target="addButton" data-action="exchange#addPerson">Add another person</button>
               </div></div>
-            </details>
-            <details class="workflow-panel" name="exchange-panels" data-exchange-target="rulesPanel">
-              <summary id="rules-title" aria-controls="rules-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.rules">Rules</span></summary>
+            </div>
+            <div class="workflow-panel" data-exchange-target="rulesPanel">
+              <button type="button" class="workflow-header" id="rules-title" aria-controls="rules-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.rules">Rules</span></button>
               <div id="rules-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="rules-title"><div class="workflow-content">
                 <p class="help" data-i18n="rules.help">Rules work in one direction. Add another rule for the reverse.</p>
                 <label for="rule-type" data-i18n="rules.type">Rule</label>
@@ -92,17 +92,17 @@
                 <button type="button" data-i18n="rules.add" data-action="exchange#addRule">Add rule</button>
                 <ul class="rules" data-exchange-target="rules"></ul>
               </div></div>
-            </details>
-            <details class="workflow-panel" name="exchange-panels" data-exchange-target="settingsPanel">
-              <summary id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></summary>
+            </div>
+            <div class="workflow-panel" data-exchange-target="settingsPanel">
+              <button type="button" class="workflow-header" id="settings-title" aria-controls="settings-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.settings">Settings</span></button>
               <div id="settings-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="settings-title"><div class="workflow-content">
               <label for="instructions" data-i18n="form.instructions">A note for everyone (optional)</label>
               <textarea id="instructions" rows="3" maxlength="600" placeholder="Bring your wrapped gift to dinner." data-i18n-placeholder="form.instructionsPlaceholder" data-exchange-target="instructions"></textarea>
               <p class="help" data-i18n="form.snapshots">Details and gift hints are included in the invitations. They won't update after you send them.</p>
               </div></div>
-            </details>
-            <details class="workflow-panel" name="exchange-panels" data-exchange-target="linksPanel">
-              <summary id="links-title" aria-controls="links-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.links">Links to share</span></summary>
+            </div>
+            <div class="workflow-panel" data-exchange-target="linksPanel">
+              <button type="button" class="workflow-header" id="links-title" aria-controls="links-body" data-action="click->exchange#switchPanel keydown->exchange#panelKey"><span data-i18n="workflow.links">Links to share</span></button>
               <div id="links-body" class="workflow-body" role="region" tabindex="0" aria-labelledby="links-title"><div class="workflow-content">
                 <p data-exchange-target="emptyResults" data-i18n="workflow.empty">Your invitations will appear here. You can save a draft below.</p>
         <section hidden data-exchange-target="results" aria-labelledby="results-title">
@@ -124,7 +124,7 @@
         </details>
 
               </div></div>
-            </details>
+            </div>
             <div class="draw-action" data-exchange-target="matchActions">
               <button class="primary" type="submit" data-exchange-target="matchButton" data-action="exchange#prepareDraw" data-i18n="form.draw">Match everyone</button>
               <p class="help" data-i18n="form.drawHelp">The draw happens on your device. Nothing is saved automatically.</p>
