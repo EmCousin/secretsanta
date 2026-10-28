@@ -158,6 +158,11 @@ summary { cursor: pointer; padding-block: .7rem; font-weight: 650; overflow-wrap
 .hint-details { margin-top: .1rem; }
 .hint-details summary { padding-block: .15rem; font-size: .8rem; color: #56624f; font-weight: 500; }
 .two-columns { display: grid; gap: 0 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 1rem; }
+.rule-type { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0; }
+.rule-type label { display: flex; align-items: center; gap: .4rem; margin: 0; padding: .45rem .65rem; border: 1px solid #83917e; border-radius: .8rem; font-size: .85rem; cursor: pointer; }
+.rule-type label:has(input:checked) { background: #e0eadc; border-color: var(--green); }
+.rule-type input { appearance: auto; width: 1rem; height: 1rem; min-height: 0; margin: 0; padding: 0; accent-color: var(--green); }
+.rule-type label:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
 .button-row { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
 .rules { list-style: none; padding: 0; }
 .rules li { display: flex; gap: .75rem; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-block: .5rem; }
@@ -198,7 +203,8 @@ summary { cursor: pointer; padding-block: .7rem; font-weight: 650; overflow-wrap
 dialog { max-width: min(34rem, calc(100% - 2rem)); max-height: 90vh; overflow: auto; padding: 1.8rem; border: 1px solid #d6bd8f; border-radius: 1.75rem; color: var(--ink); background: var(--paper); box-shadow: 0 25px 90px #031c2355; }
 dialog::backdrop { background: #061c1bd9; }
 footer { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: .25rem 1.25rem; width: min(calc(100% - 3rem), 1192px); margin: .5rem auto 0; color: #e0dfc8; padding-bottom: .75rem; font-size: .75rem; }
-footer > details { max-width: 36rem; }
+footer > details { width: min(100%, 36rem); min-width: 0; }
+footer > details p { overflow-wrap: anywhere; }
 footer details { font-size: .78rem; }
 footer summary { color: #f0dfb4; padding-block: .25rem; }
 .offline-panel { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; max-width: 100%; }
@@ -228,12 +234,13 @@ footer summary { color: #f0dfb4; padding-block: .25rem; }
   .site-header { grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; padding-inline: .5rem; }
   .site-header h1 { font-size: clamp(1.9rem, 7vw, 2.5rem); margin-bottom: .35rem; }
   .christmas-wish { font-size: 1.05rem; margin-block: .3rem; }
-  .hero-tagline { display: none; }
+  .hero-tagline { display: block; font-size: .8rem; }
   .hero-start { min-width: 0; margin-top: .35rem; padding: .6rem 1rem; }
   .hero-reassurance { font-size: .7rem; margin-top: .3rem; }
-  .hero-scene { width: clamp(5rem, 24vw, 7.5rem); }
+  .hero-scene { width: clamp(7rem, 34vw, 10rem); }
   main { padding: 1.15rem 1rem; }
   .two-columns { grid-template-columns: 1fr; }
+  #rules-body .two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
   .reveal-card { padding: 1.5rem 1rem; }
   footer { width: calc(100% - 2rem); justify-content: flex-start; }
 }

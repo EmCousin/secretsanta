@@ -142,10 +142,11 @@ export default class extends Controller {
     const recipientId = this.recipientTarget.value;
     if (!giverId || !recipientId) return this.fail('people.chooseBoth');
     if (giverId === recipientId) return this.fail('people.self');
-    const list = this.ruleTypeTarget.value === 'force' ? this.forced : this.exclusions;
+    const ruleType = this.ruleTypeTarget.querySelector('input:checked').value;
+    const list = ruleType === 'force' ? this.forced : this.exclusions;
     if (list.some(rule => rule.giverId === giverId && rule.recipientId === recipientId)) return this.fail('validation.duplicateRule');
-    const exclusions = this.ruleTypeTarget.value === 'exclude' ? [...this.exclusions, { giverId, recipientId }] : this.exclusions;
-    const forced = this.ruleTypeTarget.value === 'force' ? [...this.forced, { giverId, recipientId }] : this.forced;
+    const exclusions = ruleType === 'exclude' ? [...this.exclusions, { giverId, recipientId }] : this.exclusions;
+    const forced = ruleType === 'force' ? [...this.forced, { giverId, recipientId }] : this.forced;
     try {
       const people = this.readPeople().map((person, index) => ({ ...person, name: `Person ${index + 1}` }));
       new SecretSantaDraw(people, exclusions, { forced }).generate();
@@ -248,7 +249,7 @@ export default class extends Controller {
     this.setEditing(true);
     this.say('status.edited');
     const panel = this.editPanel || this.participantsPanelTarget;
-    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.instructionsTarget : panel === this.rulesPanelTarget ? this.ruleTypeTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
+    if (await this.accordion.select(panel)) this.focusControl(panel === this.settingsPanelTarget ? this.instructionsTarget : panel === this.rulesPanelTarget ? this.ruleTypeTarget.querySelector('input:checked') : this.peopleTarget.querySelector('input') || this.addButtonTarget);
   }
 
   save() {

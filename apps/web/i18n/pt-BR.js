@@ -10,7 +10,7 @@ export default {
   'language.short': 'PT-BR',
   'nav.skip': 'Ir para o amigo secreto',
   'hero.kicker': 'Amigo secreto de Natal',
-  'hero.tagline': 'Sorteie os nomes e envie um convite privado para cada pessoa.',
+  'hero.tagline': 'Sorteie os nomes e envie um convite privado para cada pessoa. Não é necessário criar uma conta.',
   'hero.start': 'Começar o sorteio',
   'workflow.participants': 'Participantes',
   'workflow.settings': 'Configurações',
