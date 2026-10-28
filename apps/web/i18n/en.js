@@ -10,7 +10,7 @@ export default {
   'language.short': 'EN',
   'nav.skip': 'Skip to the exchange',
   'hero.kicker': 'Christmas gift exchange',
-  'hero.tagline': 'Draw names and send everyone a private invitation.',
+  'hero.tagline': 'Draw names and send everyone a private invitation. No account needed.',
   'hero.start': 'Start a draw',
   'workflow.participants': 'Participants',
   'workflow.settings': 'Settings',

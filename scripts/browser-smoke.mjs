@@ -233,6 +233,24 @@ try {
     assert.equal(await page.locator('.workflow-body').evaluateAll(elements => elements.every(element => element.getAnimations().length === 0)), true);
   }, { viewport: { width: 1366, height: 768 } });
 
+  await check('compact mobile rules and privacy remain usable', async page => {
+    await open(page);
+    await openPanel(page, 'rules');
+    const choices = page.locator('input[name="rule-type"]');
+    assert.equal(await choices.count(), 2);
+    assert.equal(await choices.first().isChecked(), true);
+    await choices.first().focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await choices.last().isChecked(), true, 'Keyboard changes the native radio choice');
+    const privacy = page.locator('footer > details');
+    await privacy.locator('summary').click();
+    assert.equal(await privacy.evaluate(element => {
+      const box = element.getBoundingClientRect();
+      return box.left >= 0 && box.right <= innerWidth && element.scrollWidth <= element.clientWidth;
+    }), true, 'Privacy text fits the viewport');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  }, { viewport: { width: 320, height: 740 }, locale: 'fr', reducedMotion: 'reduce' });
+
   await check('section movement uses a short CSS transition', async page => {
     await open(page);
     await page.locator('#settings-title').click();
@@ -413,12 +431,12 @@ try {
     await open(page);
     await fillPeople(page, ['Alice', 'Bob', 'Charlie']);
     await openPanel(page, 'rules');
-    await page.locator('#rule-type').selectOption('force');
+    await page.locator('input[name="rule-type"][value="force"]').check();
     await page.locator('#excluded-giver').selectOption({ label: 'Alice' });
     await page.locator('#excluded-recipient').selectOption({ label: 'Bob' });
     await page.locator('[data-action="exchange#addRule"]').click();
     assert.match(await page.locator('.rules').textContent(), /Alice must draw Bob/);
-    await page.locator('#rule-type').selectOption('exclude');
+    await page.locator('input[name="rule-type"][value="exclude"]').check();
     await page.locator('[data-action="exchange#addRule"]').click();
     assert.match(await page.locator('[data-exchange-target="error"]').textContent(), /conflict/);
     assert.equal(await page.locator('.rules li').count(), 1);
