@@ -207,6 +207,7 @@ footer > details { width: min(100%, 36rem); min-width: 0; }
 footer > details p { overflow-wrap: anywhere; }
 footer details { font-size: .78rem; }
 footer summary { color: #f0dfb4; padding-block: .25rem; }
+footer .about-link { color: #f0dfb4; font-size: .75rem; }
 .offline-panel { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; max-width: 100%; }
 .offline-panel > p { color: #eed29b; margin: 0; }
 .offline-panel details { max-width: 34rem; }

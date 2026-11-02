@@ -51,6 +51,15 @@ try {
   for (const locale of ['en', 'fr', 'pt-BR']) {
     await check(`${locale} simple start, compact names, and direct invitation entrance`, async page => {
       await open(page);
+      const about = page.getByRole('button', { name: new I18n([locale]).t('about.open'), exact: true });
+      assert.equal(await about.isDisabled(), false);
+      await about.click();
+      const aboutDialog = page.getByRole('dialog');
+      assert.equal(await aboutDialog.getByRole('heading', { name: new I18n([locale]).t('about.title') }).isVisible(), true);
+      assert.equal(await aboutDialog.locator('p').count(), 2);
+      await page.keyboard.press('Escape');
+      assert.equal(await aboutDialog.isVisible(), false, 'Escape closes the explanation');
+      assert.equal(await about.evaluate(element => element === document.activeElement), true, 'Focus returns to the opener');
       const start = page.locator('[data-page-target="start"]');
       assert.equal(await start.isDisabled(), false);
       assert.equal(await start.textContent(), new I18n([locale]).t('hero.start'));

@@ -201,6 +201,15 @@
     </main>
     </div>
     <footer>
+      <div data-controller="about">
+        <button type="button" class="quiet about-link" hidden disabled data-page-target="aboutButton" data-action="about#open" data-i18n="about.open">Why Secret Santa?</button>
+        <dialog aria-labelledby="about-title" class="about-dialog" data-about-target="dialog">
+          <h2 id="about-title" data-i18n="about.title">Why Secret Santa?</h2>
+          <p data-i18n="about.paragraph1">Each person draws one name and chooses a gift for them. It is a chance to get to know someone you might not usually spend much time with, and to think about what would genuinely make them happy.</p>
+          <p data-i18n="about.paragraph2">When everyone puts care into one useful or personal gift, the exchange can feel more thoughtful. It can also mean fewer unwanted presents and less waste.</p>
+          <div class="button-row"><button type="button" class="primary" data-action="about#close" data-i18n="about.close">Close</button></div>
+        </dialog>
+      </div>
       <section class="offline-panel" hidden data-controller="pwa" data-action="locale:changed@document->pwa#localize online@window->pwa#localize offline@window->pwa#localize" aria-label="Offline access" data-i18n-aria-label="pwa.label">
         <p role="status" aria-live="polite" data-pwa-target="status">Preparing offline access…</p>
         <button type="button" hidden data-pwa-target="update" data-action="pwa#requestUpdate" data-i18n="pwa.update">Update available</button>
