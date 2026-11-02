@@ -44,6 +44,7 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] Confirm Settings has no exchange-name, budget or date inputs. Restore a pre-existing saved exchange with these values and verify its invitations still display them after reveal.
 - [ ] Open an invitation in a fresh mobile tab. The organiser hero is absent and the reveal action is easy to reach. Check malformed links, language changes, reload before/after reveal, and back/forward fragment navigation without stale revealed text.
 - [ ] Use keyboard only. Check tab order, visible focus, native details, inline errors, redraw dialog, and focus after results/reveal. Ensure you can return from the dialog with Escape.
+- [ ] Open and close the “Why Secret Santa?” dialog with keyboard and touch. Check Escape, focus return, and the English, French, and Brazilian Portuguese copy.
 - [ ] Use a screen reader to check labels, status/error announcements, and absence of recipient details before reveal.
 - [ ] Check 200% and 400% zoom, long Unicode names, and no horizontal scrolling at 320px.
 - [ ] Try impossible exclusions, repeated names, deleting someone with an exclusion, an empty group, and the 50-person limit.
