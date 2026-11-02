@@ -15,12 +15,28 @@ test('static entry point has local assets and prevents native form submission', 
   assert.match(html, /connect-src 'self'/);
   assert.match(html, /worker-src 'self'/);
   assert.doesNotMatch(html, /src="https?:/);
+  const allowedExternalLinks = new Set([
+    'https://secret-santa-drawer.com/',
+    'https://github.com/EmCousin/secretsanta',
+    'https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000049568614/',
+    'https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages',
+    'https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement',
+  ]);
   for (const [, href] of html.matchAll(/href="(https?:[^"]+)"/g)) {
-    assert.match(href, /^https:\/\/secret-santa-drawer\.com\/$/);
+    assert.ok(allowedExternalLinks.has(href), `Unexpected external link: ${href}`);
   }
   for (const [, source] of html.matchAll(/(?:src|href)="(\.\/[^"#]+)"/g)) {
     await readFile(new URL(source, root));
   }
+});
+
+test('legal notice describes anonymity, hosting, source, and browser storage', async () => {
+  const html = await readFile(new URL('index.html', root), 'utf8');
+  for (const key of ['legal.publisherIntro', 'legal.publisherCondition', 'legal.hosting', 'legal.drawData', 'legal.storage', 'legal.hostLogsLead']) {
+    assert.match(html, new RegExp(`data-i18n="${key}"`));
+  }
+  assert.match(html, /data-i18n="legal\.sourceLink"/);
+  assert.match(html, /Article 1-1 II of the French LCEN/);
 });
 
 test('sharing metadata points to the large landscape preview image', async () => {
