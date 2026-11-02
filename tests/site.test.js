@@ -14,7 +14,10 @@ test('static entry point has local assets and prevents native form submission', 
   assert.match(html, /form-action 'none'/);
   assert.match(html, /connect-src 'self'/);
   assert.match(html, /worker-src 'self'/);
-  assert.doesNotMatch(html, /(?:src|href)="https?:/);
+  assert.doesNotMatch(html, /src="https?:/);
+  for (const [, href] of html.matchAll(/href="(https?:[^"]+)"/g)) {
+    assert.match(href, /^https:\/\/secret-santa-drawer\.com\/$/);
+  }
   for (const [, source] of html.matchAll(/(?:src|href)="(\.\/[^"#]+)"/g)) {
     await readFile(new URL(source, root));
   }
