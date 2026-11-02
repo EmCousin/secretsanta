@@ -55,6 +55,12 @@ test('manifest and PNG icons are installable and scoped below the document root'
   }
 });
 
+test('social preview image is a 1200 by 630 PNG', async () => {
+  const png = await readFile(new URL('apps/web/art/share-card.png', root));
+  assert.equal(png.readUInt32BE(16), 1200);
+  assert.equal(png.readUInt32BE(20), 630);
+});
+
 test('worker installs the allowlist and never caches invitation navigations', async () => {
   const sw = await worker();
   let pending;

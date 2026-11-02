@@ -23,6 +23,14 @@ test('static entry point has local assets and prevents native form submission', 
   }
 });
 
+test('sharing metadata points to the large landscape preview image', async () => {
+  const html = await readFile(new URL('index.html', root), 'utf8');
+  assert.match(html, /property="og:image" content="https:\/\/secret-santa-drawer\.com\/apps\/web\/art\/share-card\.png"/);
+  assert.match(html, /property="og:image:width" content="1200"/);
+  assert.match(html, /property="og:image:height" content="630"/);
+  assert.match(html, /name="twitter:card" content="summary_large_image"/);
+});
+
 test('vendored Stimulus has the pinned version and upstream licence', async () => {
   const module = await readFile(new URL('apps/web/vendor/stimulus.js', root), 'utf8');
   assert.equal(createHash('sha256').update(module).digest('hex'),
