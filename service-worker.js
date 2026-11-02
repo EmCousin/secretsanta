@@ -1,6 +1,6 @@
 // Bump the version whenever any precached runtime file changes. Install the
 // whole release before activation; do not replace a running app without consent.
-const CACHE_VERSION = '2026-10-28-mobile-content-1';
+const CACHE_VERSION = '2026-11-02-social-preview-1';
 const SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `secretsanta-shell:${encodeURIComponent(SCOPE.pathname)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
@@ -16,6 +16,8 @@ const ASSETS = [
   './apps/web/art/chimney-smoke.svg',
   './apps/web/art/sleigh.svg',
   './apps/web/art/window-lights.svg',
+  './apps/web/art/share-card.svg',
+  './apps/web/art/share-card.png',
   './apps/web/art/languages/auto.svg',
   './apps/web/art/languages/en.svg',
   './apps/web/art/languages/fr.svg',

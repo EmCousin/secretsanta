@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="panel" x1="760" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#103e35"/>
+      <stop offset="1" stop-color="#092b28"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(250 210 -205 244 1130 15)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d7a94e" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#d7a94e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path fill="#103e35" d="M0 0h760v630H0z"/>
+  <image x="0" y="0" width="760" height="630" preserveAspectRatio="xMidYMid slice" xlink:href="christmas-scene.svg"/>
+  <path fill="url(#panel)" d="M760 0h440v630H760z"/>
+  <path fill="url(#glow)" d="M760 0h440v630H760z"/>
+  <path d="M820 82h76" stroke="#d6ae5e" stroke-width="3" stroke-linecap="round"/>
+  <text x="820" y="155" fill="#f0d28e" font-family="Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="4">A LITTLE HOLIDAY MAGIC</text>
+  <text x="816" y="275" fill="#fff8e9" font-family="Arial, sans-serif" font-size="68" font-weight="700">Secret</text>
+  <text x="816" y="355" fill="#fff8e9" font-family="Arial, sans-serif" font-size="68" font-weight="700">Santa</text>
+  <text x="820" y="421" fill="#dce8df" font-family="Arial, sans-serif" font-size="25">Draw names. Share private</text>
+  <text x="820" y="458" fill="#dce8df" font-family="Arial, sans-serif" font-size="25">invitations. No account needed.</text>
+  <path d="M820 520h320" stroke="#ffffff" stroke-opacity=".2"/>
+  <text x="820" y="565" fill="#d6ae5e" font-family="Arial, sans-serif" font-size="19" letter-spacing="1">SECRET-SANTA-DRAWER.COM</text>
+</svg>
