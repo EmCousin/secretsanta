@@ -37,6 +37,8 @@ test('legal notice describes anonymity, hosting, source, and browser storage', a
   }
   assert.match(html, /data-i18n="legal\.sourceLink"/);
   assert.match(html, /Article 1-1 II of the French LCEN/);
+  assert.match(html, /<button[^>]*hidden[^>]*disabled[^>]*data-page-target="legalButton"/);
+  assert.match(html, /<dialog class="legal-dialog" aria-labelledby="legal-title"/);
 });
 
 test('sharing metadata points to the large landscape preview image', async () => {

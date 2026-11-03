@@ -1,6 +1,6 @@
 // Bump the version whenever any precached runtime file changes. Install the
 // whole release before activation; do not replace a running app without consent.
-const CACHE_VERSION = '2026-11-02-legal-notice-1';
+const CACHE_VERSION = '2026-11-03-legal-modal-1';
 const SCOPE = new URL(self.registration.scope);
 const CACHE_PREFIX = `secretsanta-shell:${encodeURIComponent(SCOPE.pathname)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
@@ -40,7 +40,7 @@ const ASSETS = [
   './apps/web/controllers/locale_controller.js',
   './apps/web/controllers/pwa_controller.js',
   './apps/web/controllers/festivity_controller.js',
-  './apps/web/controllers/about_controller.js',
+  './apps/web/controllers/modal_controller.js',
   './packages/core/draw.js',
   './packages/core/invitations.js',
   './packages/core/validation.js',
