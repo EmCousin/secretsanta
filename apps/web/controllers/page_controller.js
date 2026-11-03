@@ -1,7 +1,7 @@
 import { Controller } from '../vendor/stimulus.js';
 
 export default class extends Controller {
-  static targets = ['organiser', 'invitation', 'startup', 'welcome', 'workspace', 'start', 'aboutButton'];
+  static targets = ['organiser', 'invitation', 'startup', 'welcome', 'workspace', 'start', 'aboutButton', 'legalButton'];
 
   connect() {
     this.route();
@@ -24,8 +24,10 @@ export default class extends Controller {
 
   ready(event) {
     this.startupTarget.hidden = true;
-    this.aboutButtonTarget.hidden = false;
-    this.aboutButtonTarget.disabled = false;
+    for (const button of [this.aboutButtonTarget, this.legalButtonTarget]) {
+      button.hidden = false;
+      button.disabled = false;
+    }
     if (event.target === this.organiserTarget) this.startTarget.disabled = false;
   }
 

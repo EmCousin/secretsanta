@@ -202,6 +202,13 @@ summary { cursor: pointer; padding-block: .7rem; font-weight: 650; overflow-wrap
 .multiline { white-space: pre-wrap; }
 dialog { max-width: min(34rem, calc(100% - 2rem)); max-height: 90vh; overflow: auto; padding: 1.8rem; border: 1px solid #d6bd8f; border-radius: 1.75rem; color: var(--ink); background: var(--paper); box-shadow: 0 25px 90px #031c2355; }
 dialog::backdrop { background: #061c1bd9; }
+dialog.legal-dialog { width: min(42rem, calc(100vw - 2rem)); max-width: none; max-height: min(90vh, 52rem); padding: 1.25rem; border-radius: 1.25rem; }
+.legal-dialog__header { position: sticky; top: -1.25rem; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin: -.25rem 0 1rem; padding: .25rem 0 .8rem; border-bottom: 1px solid #d6bd8f; background: var(--paper); }
+.legal-dialog__header h2 { margin: .25rem 0; }
+.legal-dialog__close { flex: 0 0 2.8rem; width: 2.8rem; min-height: 2.8rem; padding: .25rem; color: var(--green); font-size: 1.5rem; line-height: 1; text-decoration: none; }
+.legal-dialog section { margin-block: 1rem 1.25rem; }
+.legal-dialog h3 { margin: 1rem 0 .35rem; color: var(--green); }
+.legal-dialog p { line-height: 1.6; overflow-wrap: anywhere; }
 footer { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: .25rem 1.25rem; width: min(calc(100% - 3rem), 1192px); margin: .5rem auto 0; color: #e0dfc8; padding-bottom: .75rem; font-size: .75rem; }
 footer > details { width: min(100%, 36rem); min-width: 0; }
 footer > details p { overflow-wrap: anywhere; }

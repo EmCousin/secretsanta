@@ -60,6 +60,25 @@ try {
       await page.keyboard.press('Escape');
       assert.equal(await aboutDialog.isVisible(), false, 'Escape closes the explanation');
       assert.equal(await about.evaluate(element => element === document.activeElement), true, 'Focus returns to the opener');
+      const legal = page.getByRole('button', { name: new I18n([locale]).t('legal.open'), exact: true });
+      assert.equal(await legal.isDisabled(), false);
+      await legal.click();
+      const legalDialog = page.locator('dialog.legal-dialog');
+      assert.equal(await legalDialog.getByRole('heading', { name: new I18n([locale]).t('legal.heading') }).isVisible(), true);
+      const bounds = await legalDialog.boundingBox();
+      const viewport = page.viewportSize();
+      assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= viewport.width && bounds.y + bounds.height <= viewport.height, 'Legal modal stays within the viewport');
+      assert.equal(await legalDialog.getByRole('link', { name: new I18n([locale]).t('legal.sourceLink') }).getAttribute('href'), 'https://github.com/EmCousin/secretsanta');
+      assert.match(await legalDialog.textContent(), /local storage|stockage local|armazenamento local/i);
+      await legalDialog.getByRole('button', { name: new I18n([locale]).t('dialog.close'), exact: true }).last().click();
+      assert.equal(await legalDialog.isVisible(), false, 'Close button dismisses the legal notice');
+      assert.equal(await legal.evaluate(element => element === document.activeElement), true, 'Focus returns to the legal notice opener');
+      if (locale === 'en') {
+        await legal.click();
+        await page.mouse.click(1, 1);
+        assert.equal(await legalDialog.isVisible(), false, 'Backdrop click dismisses the legal notice');
+        assert.equal(await legal.evaluate(element => element === document.activeElement), true, 'Backdrop dismissal returns focus to the opener');
+      }
       const start = page.locator('[data-page-target="start"]');
       assert.equal(await start.isDisabled(), false);
       assert.equal(await start.textContent(), new I18n([locale]).t('hero.start'));
