@@ -7,44 +7,26 @@ export class SectionAccordion {
     this.animations = new Map();
     this.abort = new AbortController();
     this.reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    this.contained = matchMedia('(min-width: 960px) and (min-height: 700px)');
     this.mobile = matchMedia('(max-width: 650px)');
     for (const panel of panels) panel.removeAttribute('name');
-    for (const media of [this.reduced, this.contained]) {
-      media.addEventListener('change', () => this.select(this.active, { animate: false }), { signal: this.abort.signal });
-    }
-    this.observer = new ResizeObserver(() => {
-      if (!this.animations.size) this.layout();
-    });
-    this.observer.observe(root);
+    this.reduced.addEventListener('change', () => this.select(this.active, { animate: false }), { signal: this.abort.signal });
     this.select(this.active, { animate: false });
   }
 
   body(panel) { return panel.querySelector('.workflow-body'); }
   summary(panel) { return panel.querySelector(':scope > summary'); }
 
-  height(panel) {
-    if (!this.contained.matches) {
-      return this.body(panel).getBoundingClientRect().height;
-    }
-    const actions = this.root.querySelector('.draw-action');
-    const headers = this.panels.reduce((height, item) => height + this.summary(item).getBoundingClientRect().height, 0);
-    const gap = parseFloat(getComputedStyle(this.root).rowGap) || 0;
-    const actionHeight = actions.hidden ? 0 : actions.getBoundingClientRect().height;
-    const gaps = gap * (this.panels.length - 1 + Number(!actions.hidden));
-    return Math.max(0, Math.floor(this.root.clientHeight - headers - actionHeight - gaps));
-  }
-
-  layout() {
-    if (!this.active || !this.active.open) return;
-    this.body(this.active).style.height = this.contained.matches ? `${this.height(this.active)}px` : '';
+  settle(panel, opening) {
+    const body = this.body(panel);
+    panel.open = opening;
+    body.classList.remove('is-transitioning');
+    body.style.height = '';
+    body.style.overflow = '';
   }
 
   async select(next, { animate = true } = {}) {
-    // Isolate the cost of section motion on mobile without changing the
-    // independent festive animations or desktop behavior.
-    if (this.mobile.matches) animate = false;
-    const heights = new Map(this.panels.map(panel => [panel, panel.open ? this.body(panel).getBoundingClientRect().height : 0]));
+    animate = animate && !this.mobile.matches && !this.reduced.matches;
+    const heights = animate ? new Map(this.panels.map(panel => [panel, panel.open ? this.body(panel).getBoundingClientRect().height : 0])) : null;
     this.active = next;
     for (const animation of this.animations.values()) animation.cancel();
     this.animations.clear();
@@ -54,24 +36,26 @@ export class SectionAccordion {
       const body = this.body(panel);
       this.summary(panel).setAttribute('aria-expanded', String(opening));
       panel.classList.toggle('is-active', opening);
-      body.inert = !opening;
       if (!opening && body.contains(document.activeElement)) this.summary(panel).focus({ preventScroll: true });
+      body.inert = !opening;
+      if (!animate) {
+        this.settle(panel, opening);
+        continue;
+      }
       if (opening) panel.open = true;
       if (!panel.open) continue;
       body.classList.remove('is-transitioning');
-      if (opening && !this.contained.matches) body.style.height = '';
+      if (opening) body.style.height = '';
       visible.push({ panel, body, opening, from: heights.get(panel) });
     }
 
     // Read target geometry together, then write starting heights together. This
     // avoids forcing a fresh layout separately for each opening/closing panel.
-    for (const item of visible) item.to = item.opening ? this.height(item.panel) : 0;
+    for (const item of visible) item.to = item.opening ? item.body.getBoundingClientRect().height : 0;
     const transitioning = [];
     for (const { panel, body, opening, from, to } of visible) {
-      if (!animate || this.reduced.matches || from === to) {
-        panel.open = opening;
-        body.style.height = opening && this.contained.matches ? `${to}px` : '';
-        body.style.overflow = '';
+      if (from === to) {
+        this.settle(panel, opening);
         continue;
       }
       body.style.height = `${from}px`;
@@ -84,23 +68,17 @@ export class SectionAccordion {
       body.style.height = `${to}px`;
     }
     const pending = [];
-    for (const { panel, body, opening, to } of transitioning) {
+    for (const { panel, body, opening } of transitioning) {
       const animation = body.getAnimations?.().find(item => item.transitionProperty === 'height');
       if (!animation) {
-        panel.open = opening;
-        body.classList.remove('is-transitioning');
-        body.style.overflow = '';
-        body.style.height = opening && this.contained.matches ? `${this.height(panel)}px` : '';
+        this.settle(panel, opening);
         continue;
       }
       this.animations.set(panel, animation);
       pending.push(animation.finished.then(() => {
         if (this.animations.get(panel) !== animation) return;
         this.animations.delete(panel);
-        panel.open = opening;
-        body.classList.remove('is-transitioning');
-        body.style.overflow = '';
-        body.style.height = opening && this.contained.matches ? `${this.height(panel)}px` : '';
+        this.settle(panel, opening);
       }).catch(() => { /* A newer selection or system preference replaces this animation. */ }));
     }
     await Promise.all(pending);
@@ -117,7 +95,6 @@ export class SectionAccordion {
 
   disconnect() {
     this.abort.abort();
-    this.observer.disconnect();
     this.select(this.active, { animate: false });
   }
 }
