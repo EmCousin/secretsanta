@@ -25,12 +25,19 @@ export default class extends Controller {
 
   disconnect() { this.accordion?.disconnect(); }
 
-  switchPanel(event) {
+  async switchPanel(event) {
     if (!this.accordion) return;
     event.preventDefault();
-    const panel = event.currentTarget.parentElement;
+    const summary = event.currentTarget;
+    const panel = summary.parentElement;
     if (this.invitations && panel !== this.linksPanelTarget) return this.requestEdit(event, panel);
-    this.accordion.select(this.accordion.active === panel ? null : panel);
+    const { top, bottom } = summary.getBoundingClientRect();
+    const wasVisible = bottom > 0 && top < window.innerHeight;
+    if (!await this.accordion.select(this.accordion.active === panel ? null : panel)) return;
+    // Closing a long section above this header can move it out of view.
+    if (wasVisible && summary.getBoundingClientRect().bottom <= 0) {
+      summary.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+    }
   }
 
   panelKey(event) { this.accordion?.focusHeader(event); }
@@ -43,7 +50,6 @@ export default class extends Controller {
   async start() {
     const panel = this.invitations ? this.linksPanelTarget : this.participantsPanelTarget;
     if (!await this.accordion.select(panel)) return;
-    this.accordion.body(panel).scrollTop = 0;
     this.focusControl(this.invitations ? this.resultHeadingTarget : this.peopleTarget.querySelector('input') || this.addButtonTarget);
   }
 

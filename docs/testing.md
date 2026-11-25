@@ -22,6 +22,14 @@ PLAYWRIGHT_MODULE=/tmp/opencode/secretsanta-browser/node_modules/playwright/inde
 
 The script checks a 320px layout, drawing, exclusions, explicit reveal, local saving/restoring/deleting, confirmation before editing a finished draw, missing APIs, permission errors, share cancellation, blocked storage, corrupt saved copies, invalid invitations, untrusted text, no JavaScript, and absence of third-party requests. It checks Chromium only; emulated viewport sizes are not real-device testing.
 
+## Local form layout preview
+
+Run `npm run dev` from the repository root and open `http://127.0.0.1:8000/`. Use a fresh private window if the local service worker still serves an older version, or accept the app's update after saving any work.
+
+1. On desktop, enter three names and add the same exclusion twice. With the duplicate-rule error visible, check that the Rules fields and Add rule button aren't clipped by an inner scrollbar. Switch to Participants, open a gift hint, and check that all three lines of the textarea are available.
+2. Repeat at 320px and 390px in Chromium's device toolbar. On a physical phone, also check that you can scroll the page while the keyboard is open and reach the next field. For Android over USB, `adb reverse tcp:8000 tcp:8000` lets Chrome on the phone open `http://127.0.0.1:8000/`.
+3. Add enough names to scroll, then switch to Rules from below the list. The selected header should stay in view. Switch sections rapidly and repeat with reduced motion enabled: only the selected section should remain open, and entered values should be unchanged.
+
 ## Manual release checklist
 
 Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Edge before calling those platforms verified. Do not mark a browser tested based on Chromium automation alone.
@@ -30,8 +38,8 @@ Run on Safari/iOS, Safari/macOS, Chrome/Android, desktop Chrome, Firefox, and Ed
 - [ ] The welcome artwork has no caption in any language; the house, Nativity, and star remain visible.
 - [ ] On the first mobile screen, use Start a draw to reach the first name. With existing results, verify it returns to those results without redrawing or changing links.
 - [ ] Check the actual first input is on-screen after the CTA, not merely focused. Test short mobile viewports, long groups, and a scrolled page. The focus ring should not compete with a second row outline.
-- [ ] On desktop, welcome and setup sit side by side. Switching sections closes the previous section with an animation; reduced motion disables it. Long lists and expanded hints scroll within the active section without moving the welcome column. Check short screens and zoom remain usable with document scrolling.
-- [ ] Swipe over the beige participant area on a real phone, including when the list is short or expanded: the page must scroll normally. On desktop, wheel over the active panel and continue scrolling past either edge; the page must not be trapped. Check touch, trackpad, mouse and keyboard on actual devices.
+- [ ] On desktop, welcome and setup sit side by side. Switching sections closes the previous section with an animation; reduced motion disables it. The card grows to fit long lists and expanded hints without repositioning the welcome column. Check short screens and zoom remain usable with document scrolling.
+- [ ] Swipe or wheel over the beige participant area: the page must scroll normally without a nested section scrollbar. Check touch, trackpad, mouse and keyboard on actual devices.
 - [ ] Open and close sections rapidly on mobile and desktop. Movement should feel responsive, inputs and scrolling should remain usable, and system reduced motion should disable the transition. Check on physical devices as well as in automated tests.
 - [ ] Compare the section movement and twinkling lights on a physical phone after the batched-layout change. Confirm normal page scrolling and a live switch to reduced motion during a transition; simulated Chromium timing is not a device performance guarantee.
 - [ ] Check the compact rule choices with touch, keyboard and screen reader in all languages; confirm force and exclusion rules work and the privacy disclosure wraps at narrow widths and zoom. Check the larger mobile Christmas artwork does not overlap the heading or controls.
@@ -114,7 +122,7 @@ Alignment checks measure the vertical centres of each native radio, local flag/g
 
 The 23 UI scenarios include first-screen CTA visibility at 375 × 667px in en/fr/pt-BR, focus and visible input bounds without navigation, compact rows, Enter/empty Enter, synthetic IME confirmation, hint newlines, neighbour focus, safe trailing-row removal, a 50-person limit, removing all names, and native validation of collapsed fields. They verify the CTA preserves completed invitation links and no draw is saved automatically. Invitation cases check first-screen reveal visibility, hidden organiser welcome, generic metadata, no recipient before reveal or after reload, language switching, and clearing revealed text when leaving the route. Physical mobile keyboards and real IME behaviour remain manual checks.
 
-Six desktop cases verify side-by-side layout and a viewport-contained workspace at 1366 × 768px and 1440 × 900px in every language. They compare column coordinates when hints expand, exercise larger groups and internally scrolling results, and verify the input focus ring. Accordion checks cover rapid switching, keyboard navigation and reduced motion. A short 375 × 400px mobile case checks scrolling to the first input while preserving the URL and typed names.
+Six desktop cases verify a compact starting layout at 1366 × 768px and 1440 × 900px in every language. They compare column coordinates when hints expand, exercise page scrolling for larger groups and results, and verify the input focus ring. Accordion checks cover rapid switching, keyboard navigation and reduced motion. A short 375 × 360px mobile case checks scrolling to the first input while preserving the URL and typed names.
 
 The Rules follow-up adds exhaustive three-person forced/excluded matching tests, saved-copy compatibility, a browser save/restore/draw scenario and axe checks for the Rules panel in each language. Current checks: 39 Node tests, 25 browser scenarios, 18 design scenarios, 24 axe scenarios and 6 real-worker scenarios. Manual device, screen-reader and native-speaker checks remain outstanding.
 

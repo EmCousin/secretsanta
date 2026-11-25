@@ -51,6 +51,13 @@ try {
   for (const locale of ['en', 'fr', 'pt-BR']) {
     await check(`${locale} simple start, compact names, and direct invitation entrance`, async page => {
       await open(page);
+      const start = page.locator('[data-page-target="start"]');
+      assert.equal(await start.isDisabled(), false);
+      assert.equal(await start.textContent(), new I18n([locale]).t('hero.start'));
+      assert.equal(await start.evaluate(element => {
+        const box = element.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }), true, 'Start is visible before scrolling on the first mobile screen');
       const about = page.getByRole('button', { name: new I18n([locale]).t('about.open'), exact: true });
       assert.equal(await about.isDisabled(), false);
       await about.click();
@@ -79,13 +86,6 @@ try {
         assert.equal(await legalDialog.isVisible(), false, 'Backdrop click dismisses the legal notice');
         assert.equal(await legal.evaluate(element => element === document.activeElement), true, 'Backdrop dismissal returns focus to the opener');
       }
-      const start = page.locator('[data-page-target="start"]');
-      assert.equal(await start.isDisabled(), false);
-      assert.equal(await start.textContent(), new I18n([locale]).t('hero.start'));
-      assert.equal(await start.evaluate(element => {
-        const box = element.getBoundingClientRect();
-        return box.top >= 0 && box.bottom <= innerHeight;
-      }), true, 'Start is visible on the first mobile screen');
       assert.equal(await page.locator('#exchange-name, #budget, #date').count(), 0, 'Exchange name, budget and date are not requested');
       assert.equal(await page.locator('.storage-panel').isVisible(), false, 'Saving is tucked into Links to share');
       const originalUrl = page.url();
@@ -158,7 +158,7 @@ try {
 
   for (const locale of ['en', 'fr', 'pt-BR']) {
     for (const [width, height] of [[1366, 768], [1440, 900]]) {
-      await check(`${locale}/${width} desktop workspace fits without page scrolling`, async page => {
+      await check(`${locale}/${width} desktop workspace starts compact and grows in place`, async page => {
         await open(page);
         await page.waitForFunction(preparing => document.querySelector('[data-pwa-target="status"]').textContent !== preparing,
           new I18n([locale]).t('pwa.preparing'));
@@ -212,7 +212,6 @@ try {
         assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Large groups grow naturally, without a capped name list');
         await page.locator('[data-page-target="start"]').click();
         assert.equal(await names.first().evaluate(element => element === document.activeElement), true);
-        assert.equal(await page.locator('#participants-body').evaluate(element => element.scrollTop), 0, 'CTA scrolls the active section back to its first input');
         assert.equal(await names.first().evaluate(element => {
           const box = element.getBoundingClientRect();
           const list = element.closest('.people').getBoundingClientRect();
@@ -222,13 +221,14 @@ try {
         assert.equal(await page.locator('.person-row').first().evaluate(element => getComputedStyle(element).borderTopStyle), 'none', 'No competing focus border surrounds the row');
         await page.locator('.hint-details summary').first().click();
         assert.equal(await page.locator('.people').evaluate(element => getComputedStyle(element).maxHeight === 'none' && getComputedStyle(element).overflowY === 'visible'), true, 'Expanded hints never get clipped inside a capped list');
-        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Expanded hints scroll only inside the Participants section');
+        assert.equal(await page.locator('#participants-body').evaluate(element => element.scrollHeight <= element.clientHeight + 1), true, 'Participants fits the expanded content');
         await page.locator('[data-field="hint"]').first().fill('A warm scarf');
         await page.locator('button[type="submit"]').click();
         await page.locator('[data-exchange-target="results"]:visible').waitFor();
         await openPanel(page, 'links');
         assert.equal(await page.locator('[data-share-target="link"]').count(), 8);
-        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight), true, 'Long results scroll only inside Links to share');
+        assert.equal(await page.locator('#links-body').evaluate(element => element.scrollHeight <= element.clientHeight + 1), true, 'Links to share grows to fit long results');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight), true, 'Long results use page scrolling');
         await openStorage(page);
         await page.locator('[data-action="exchange#save"]').click();
         assert.equal(await page.locator('[data-exchange-target="status"]').isVisible(), true);
@@ -270,8 +270,8 @@ try {
     await choices.first().focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await choices.last().isChecked(), true, 'Keyboard changes the native radio choice');
-    const privacy = page.locator('footer > details');
-    await privacy.locator('summary').click();
+    await page.getByRole('button', { name: new I18n(['fr']).t('legal.open'), exact: true }).click();
+    const privacy = page.locator('dialog.legal-dialog');
     assert.equal(await privacy.evaluate(element => {
       const box = element.getBoundingClientRect();
       return box.left >= 0 && box.right <= innerWidth && element.scrollWidth <= element.clientWidth;
@@ -332,29 +332,58 @@ try {
     await session.detach();
   }, { viewport: { width: 390, height: 667 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
 
-  await check('desktop panel scrolling chains to the page at its edge', async page => {
+  await check('desktop rules and gift hints have room even with a validation error', async page => {
     await open(page);
-    for (let index = 2; index < 10; index++) await page.locator('[data-exchange-target="addButton"]').click();
+    await fillPeople(page);
+    await openPanel(page, 'rules');
+    const rules = page.locator('#rules-body');
+    const addRule = rules.getByRole('button', { name: 'Add rule' });
+    await page.locator('#excluded-giver').selectOption({ label: 'Alice' });
+    await page.locator('#excluded-recipient').selectOption({ label: 'Bob' });
+    await addRule.click();
+    const naturalHeight = (await rules.boundingBox()).height;
+    await addRule.click();
+    assert.equal(await page.locator('[data-exchange-target="error"]').isVisible(), true);
+    assert.equal((await rules.boundingBox()).height, naturalHeight, 'An error must not shrink the form');
+    assert.equal(await rules.evaluate(element => element.scrollHeight <= element.clientHeight + 1), true);
+    const hero = await page.locator('.site-header').boundingBox();
+    await openPanel(page, 'participants');
     const body = page.locator('#participants-body');
-    assert.equal(await body.evaluate(element => getComputedStyle(element).overscrollBehaviorY), 'auto');
-    await page.evaluate(() => {
-      document.body.style.minHeight = '180vh';
-      const panel = document.querySelector('#participants-body');
-      panel.scrollTop = panel.scrollHeight;
-      window.scrollTo(0, 0);
+    await body.locator('.hint-details summary').first().click();
+    const hint = body.locator('[data-field="hint"]').first();
+    await hint.fill('A cookbook\nA puzzle\nA wool scarf');
+    const hintBox = await hint.boundingBox();
+    const bodyBox = await body.boundingBox();
+    assert.ok(hintBox.y + hintBox.height <= bodyBox.y + bodyBox.height, 'The full textarea fits inside the expanded section');
+    assert.deepEqual(await page.locator('.site-header').boundingBox(), hero, 'The welcome column does not move');
+  }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });
+
+  await check('desktop uses page scrolling and keeps the selected header in view after a long section', async page => {
+    await open(page);
+    await page.locator('[data-exchange-target="addButton"]').evaluate(button => {
+      for (let index = 2; index < 25; index++) button.click();
     });
+    const body = page.locator('#participants-body');
+    assert.equal(await body.evaluate(element => getComputedStyle(element).overflowY), 'visible');
+    await page.evaluate(() => window.scrollTo(0, 0));
     const box = await body.boundingBox();
     await page.mouse.move(box.x + 25, box.y + 30);
     await page.mouse.wheel(0, 450);
-    await page.waitForTimeout(150);
-    await page.mouse.wheel(0, 450);
     await page.waitForFunction(() => window.scrollY > 0);
-  }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });
+    assert.equal(await body.evaluate(element => element.scrollTop), 0);
+    const rules = page.locator('#rules-title');
+    await rules.evaluate(element => element.scrollIntoView({ block: 'center' }));
+    await openPanel(page, 'rules');
+    assert.equal(await rules.evaluate(element => {
+      const { top, bottom } = element.getBoundingClientRect();
+      return bottom > 0 && top < innerHeight;
+    }), true);
+  }, { viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
 
   await check('CTA explicitly scrolls off-screen inputs on short mobile screens', async page => {
     await open(page);
     const first = page.locator('[data-field="name"]').first();
-    assert.ok(await first.evaluate(element => element.getBoundingClientRect().bottom) > 400);
+    assert.ok(await first.evaluate(element => element.getBoundingClientRect().bottom > innerHeight + 16));
     const original = page.url();
     await page.locator('[data-page-target="start"]').click();
     assert.equal(await first.evaluate(element => element === document.activeElement), true);
@@ -367,7 +396,7 @@ try {
     await first.fill('Keep my name');
     await chooseLanguage(page, 'fr');
     assert.equal(await first.inputValue(), 'Keep my name');
-  }, { viewport: { width: 375, height: 400 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+  }, { viewport: { width: 375, height: 360 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
 
   await check('name entry handles limits, empty lists, and collapsed-field validation', async page => {
     await open(page);
